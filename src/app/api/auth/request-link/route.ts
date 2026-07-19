@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { sendWhatsAppMessage } from "@/lib/evolution";
+import { normalizeWhatsapp } from "@/lib/phone";
+import crypto from "crypto";
+
+const RequestLinkSchema = z.object({
+  whatsapp: z.string().min(1, "El número de WhatsApp es requerido"),
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const parsed = RequestLinkSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const rawWhatsapp = parsed.data.whatsapp;
+    const whatsapp = normalizeWhatsapp(rawWhatsapp);
+
+    console.log(`[request-link] raw="${rawWhatsapp}" → normalizado="${whatsapp}"`);
+
+    // Buscar la barbería por el número de WhatsApp asociado
+    const barbershop = await prisma.barbershop.findUnique({
+      where: { whatsappNumber: whatsapp },
+    });
+
+    if (!barbershop) {
+      return NextResponse.json(
+        { success: false, error: "No se encontró ninguna barbería asociada a ese número de WhatsApp." },
+        { status: 404 }
+      );
+    }
+
+    // Generar un MagicToken válido por 15 minutos
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.magicToken.create({
+      data: {
+        barbershopId: barbershop.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    // Envío del enlace por WhatsApp
+    const authLink = `http://localhost:3000/api/auth/verify?token=${token}`;
+    const message = `🔑 ¡Hola, bro! Aquí tienes tu enlace mágico de acceso para entrar a tu panel de BarberOS. Vence en 15 minutos:\n\n${authLink}\n\nNo compartas este enlace con nadie.`;
+
+    await sendWhatsAppMessage({
+      instance: barbershop.evolutionInstance,
+      apiKey: barbershop.evolutionApiKey,
+      to: whatsapp,
+      message,
+    });
+
+    return NextResponse.json({ success: true, message: "Enlace mágico enviado por WhatsApp." });
+  } catch (error) {
+    console.error("[Request Link API] Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Error interno al procesar el enlace mágico." },
+      { status: 500 }
+    );
+  }
+}
