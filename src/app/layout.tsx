@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import ClarityInit from "@/components/ClarityInit";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -32,7 +33,10 @@ export default function RootLayout({
       lang="es"
       className={`${fraunces.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        <ClarityInit />
+        {children}
+      </body>
     </html>
   );
 }
