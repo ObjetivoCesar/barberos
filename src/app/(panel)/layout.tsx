@@ -1,3 +1,12 @@
+import { redirect } from "next/navigation";
+import { deleteSession } from "@/lib/session";
+
+async function logout() {
+  "use server";
+  await deleteSession();
+  redirect("/login");
+}
+
 export default function PanelLayout({
   children,
 }: {
@@ -42,9 +51,14 @@ export default function PanelLayout({
         </nav>
 
         <div className="border-t border-[#2a2520] pt-4">
-          <button className="font-mono text-xs tracking-[0.2em] uppercase text-[#5c554c] hover:text-[#d97644] transition-colors">
-            Cerrar Sesión
-          </button>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="font-mono text-xs tracking-[0.2em] uppercase text-[#5c554c] hover:text-[#d97644] transition-colors"
+            >
+              Cerrar Sesión
+            </button>
+          </form>
         </div>
       </aside>
 

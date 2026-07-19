@@ -16,7 +16,7 @@ model Barbershop {
   googleMapsUrl    String?
   planStatus       String         @default("TRIAL")
   trialEndsAt      DateTime?
-  connectionStatus String         @default("CONNECTED")
+  connectionStatus String         @default("CONNECTED") // Reservado para uso futuro (ej. Evolution API down)
   createdAt        DateTime       @default(now())
   staff            BarberStaff[]
   customers        BarberCustomer[]
@@ -40,14 +40,15 @@ model BarberStaff {
 }
 
 model BarberCustomer {
-  id           String    @id @default(cuid())
-  barbershopId String
-  whatsapp     String
-  name         String?
-  cutsCount    Int       @default(0)
-  sessionState String    @default("IDLE")
-  lastVisitAt  DateTime?
-  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  id                     String    @id @default(cuid())
+  barbershopId           String
+  whatsapp               String
+  name                   String?
+  cutsCount              Int       @default(0)
+  sessionState           String    @default("IDLE")
+  lastVisitAt            DateTime?
+  lastReactivationSentAt DateTime? // Campo para controlar el cron de reactivación
+  barbershop             Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
 
   @@unique([barbershopId, whatsapp])
 }
