@@ -12,6 +12,12 @@ interface WebhookPayload {
     };
     message: {
       conversation?: string;
+      extendedTextMessage?: {
+        text?: string;
+      };
+      imageMessage?: {
+        caption?: string;
+      };
     };
   };
 }
@@ -22,21 +28,25 @@ async function processMessage(payload: WebhookPayload) {
     return;
   }
 
-  if (!payload.data?.message?.conversation) {
+  const message = payload.data?.message;
+  if (!message) {
     return;
   }
 
-  // Ignorar mensajes enviados por nosotros (desactivado temporalmente para pruebas con auto-mensajes)
-  /*
-  if (payload.data.key.fromMe) {
+  const messageText = (
+    message.conversation ||
+    message.extendedTextMessage?.text ||
+    message.imageMessage?.caption ||
+    ""
+  ).trim();
+
+  if (!messageText) {
     return;
   }
-  */
 
   // Extraer número de teléfono
   const remoteJid = payload.data.key.remoteJid;
   const whatsapp = remoteJid.replace("@s.whatsapp.net", "");
-  const messageText = payload.data.message.conversation.trim();
 
   // Buscar barbería usando la instancia del webhook, con fallback
   const evolutionInstance = payload.instance;
