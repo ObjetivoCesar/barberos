@@ -201,14 +201,12 @@ export async function POST(request: NextRequest) {
     headers: { "Content-Type": "application/json" },
   });
 
-  // Procesar en segundo plano
-  request.json().then((payload: WebhookPayload) => {
-    processMessage(payload).catch((error) => {
-      console.error("[Webhook WhatsApp] Error en procesamiento:", error);
-    });
-  }).catch((error) => {
-    console.error("[Webhook WhatsApp] Error parseando JSON:", error);
-  });
+  try {
+    const payload: WebhookPayload = await request.json();
+    await processMessage(payload);
+  } catch (error) {
+    console.error("[Webhook WhatsApp] Error processing webhook:", error);
+  }
 
   return responseStream;
 }
