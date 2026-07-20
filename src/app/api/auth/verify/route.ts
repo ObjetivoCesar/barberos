@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get("token");
 
     if (!token) {
-      return NextResponse.json({ error: "Token de acceso faltante" }, { status: 400 });
+      return NextResponse.redirect(new URL("/acceso?error=Falta_token", request.url));
     }
 
     // Buscar el MagicToken en la base de datos
@@ -21,22 +21,16 @@ export async function GET(request: NextRequest) {
     });
 
     if (!magicToken) {
-      return NextResponse.json({ error: "Token no válido" }, { status: 400 });
-    }
-
-    if (magicToken.usedAt) {
-      return NextResponse.json({ error: "Este token ya fue utilizado" }, { status: 400 });
+      return NextResponse.redirect(new URL("/acceso?error=Token_invalido", request.url));
     }
 
     if (new Date() > magicToken.expiresAt) {
-      return NextResponse.json({ error: "El token ha expirado" }, { status: 400 });
+      return NextResponse.redirect(new URL("/acceso?error=Token_expirado", request.url));
     }
 
-    // Marcar el token como usado
-    await prisma.magicToken.update({
-      where: { id: magicToken.id },
-      data: { usedAt: new Date() },
-    });
+    // Ya no marcamos el token como "usado" inmediatamente.
+    // Esto evita que el pre-fetch (link preview) de WhatsApp consuma el token
+    // y bloquee al usuario real cuando hace clic. El token simplemente expira en 15 mins.
 
     // Obtener detalles de la barbería para asegurar planStatus
     const barbershop = await prisma.barbershop.findUnique({
@@ -45,7 +39,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!barbershop) {
-      return NextResponse.json({ error: "Barbería no encontrada" }, { status: 404 });
+      return NextResponse.redirect(new URL("/acceso?error=Barberia_no_encontrada", request.url));
     }
 
     // Firmar JWT utilizando jose
