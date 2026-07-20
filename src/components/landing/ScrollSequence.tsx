@@ -32,7 +32,10 @@ gsap.registerPlugin(ScrollTrigger);
 export interface SceneData {
   question: string;
   microcopy?: string;
-  frameSrc?: string;       // Una imagen por escena (modo placeholder)
+  /** Una imagen por escena (modo placeholder / crossfade) */
+  frameSrc?: string;
+  /** Array de frames para animación canvas tipo Apple (20-40 imágenes por escena) */
+  frames?: string[];
   /** Solo para documentación interna — descripción del visual de producción */
   productionNote?: string;
 }
@@ -61,10 +64,12 @@ export default function ScrollSequence({
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const closingRef = useRef<HTMLDivElement>(null);
 
-  // Modo canvas-sequence (para cuando lleguen los frames reales de producción)
+  // Modo canvas-sequence simplificado (flat array)
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
-  const isSequenceMode = frameList && frameList.length > 0;
+  // Hay modo sequence si cualquier escena tiene frames[] O si se pasó frameList global
+  const hasAnyFrameScene = scenes.some(s => s.frames && s.frames.length > 0);
+  const isSequenceMode = (frameList && frameList.length > 0) || hasAnyFrameScene;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -76,88 +81,124 @@ export default function ScrollSequence({
         const context = canvas.getContext("2d");
         if (!context) return;
 
-        // Precargar las primeras 5 imágenes de forma inmediata, el resto en diferido
-        const preloadBatch = (start: number, end: number) => {
-          frameList!.slice(start, end).forEach((src, i) => {
-            const img = new Image();
-            img.src = src;
-            img.onload = () => {
-              imagesRef.current[start + i] = img;
-            };
-          });
+        // Construir el array plano de todas las imágenes
+        const allFrames: string[] = frameList && frameList.length > 0
+          ? frameList
+          : scenes.flatMap(s => s.frames ?? (s.frameSrc ? [s.frameSrc] : []));
+
+        // Inicializar array de imágenes
+        imagesRef.current = [];
+
+        const preloadImage = (src: string, index: number) => {
+          const img = new Image();
+          img.src = src;
+          img.onload = () => {
+            imagesRef.current[index] = img;
+            // Dibujar el primer frame de inmediato
+            if (index === 0) {
+              drawFrame(canvas, context, img);
+            }
+          };
         };
 
-        preloadBatch(0, Math.min(5, frameList!.length));
-        setTimeout(() => preloadBatch(5, frameList!.length), 800);
+        // Precargar prioritariamente los primeros 5
+        allFrames.slice(0, 5).forEach((src, idx) => preloadImage(src, idx));
+        
+        // Cargar el resto en diferido para no bloquear
+        setTimeout(() => {
+          allFrames.slice(5).forEach((src, idx) => preloadImage(src, 5 + idx));
+        }, 150);
 
-        // ScrollTrigger para canvas
+        // ScrollTrigger para canvas — reproduce de 0 a 1 linealmente
         ScrollTrigger.create({
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${totalHeight}vh`,
+          end: "bottom bottom",
           scrub: 0.5,
-          pin: panelRef.current,
           onUpdate: (self) => {
-            const frameIndex = Math.floor(
-              self.progress * (frameList!.length - 1)
+            const p = self.progress;
+            const totalFrames = allFrames.length;
+            const frameIndex = Math.min(
+              Math.floor(p * totalFrames),
+              totalFrames - 1
             );
             const img = imagesRef.current[frameIndex];
             if (!img) return;
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            // Dibujar centrado (safe zone): object-fit: cover en canvas
-            const scale = Math.max(
-              canvas.width / img.naturalWidth,
-              canvas.height / img.naturalHeight
-            );
-            const drawW = img.naturalWidth * scale;
-            const drawH = img.naturalHeight * scale;
-            const x = (canvas.width - drawW) / 2;
-            const y = (canvas.height - drawH) / 2;
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, x, y, drawW, drawH);
+            drawFrame(canvas, context, img);
           },
         });
       }
 
-      // ── ScrollTrigger principal: Timeline sincronizada ───────
+      function drawFrame(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+        const drawW = img.naturalWidth * scale;
+        const drawH = img.naturalHeight * scale;
+        const x = (canvas.width - drawW) / 2;
+        const y = (canvas.height - drawH) / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, x, y, drawW, drawH);
+      }
+
+      // ── ScrollTrigger principal: Timeline de textos ───────
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${totalHeight}vh`,
-          pin: panelRef.current,
+          end: "bottom bottom",
           scrub: 0.5,
         }
       });
 
-      // Animación secuencial de imágenes y textos
+      // ── Timeline de textos ─────────────────────────
+      // Cada escena ocupa un bloque exclusivo de la timeline.
+      // Estructura por escena: entrada (typewriter clip-path) -> permanece -> salida
+      const SCENE_DURATION = 4; // unidades GSAP por escena
+      const ENTRY_DUR = 1.0;
+      const EXIT_DUR  = 0.8;
+      const EXIT_START = 2.8;
+
       scenes.forEach((_, i) => {
         const questionEl = questionRefs.current[i];
-        const imageEl = imageRefs.current[i];
+        const imageEl    = imageRefs.current[i];
         if (!questionEl) return;
 
-        // Establecer estado inicial
-        gsap.set(questionEl, { opacity: 0, y: 30 });
+        const blockStart = i * SCENE_DURATION;
+
+        // Estado inicial: Opaco abajo y oculto con máscara de izquierda a derecha (typewriter)
+        gsap.set(questionEl, { 
+          opacity: 0, 
+          y: 20, 
+          clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)" 
+        });
+        if (!isSequenceMode && imageEl) gsap.set(imageEl, { opacity: 0 });
+
+        // Entrada: Revela deslizando la máscara a 100% de ancho (efecto escritura)
+        tl.to(questionEl, { 
+          opacity: 1, 
+          y: 0, 
+          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+          duration: ENTRY_DUR, 
+          ease: "power1.inOut" 
+        }, blockStart);
+
         if (!isSequenceMode && imageEl) {
-          gsap.set(imageEl, { opacity: 0 });
+          tl.to(imageEl, { opacity: 0.7, duration: ENTRY_DUR }, blockStart);
         }
 
-        // Posición de inicio del bloque en la timeline (proporcional)
-        const label = `scene_${i}`;
-        
-        // 1. Entrada (fade in + slide up)
-        tl.to(questionEl, { opacity: 1, y: 0, duration: 1 }, label);
-        if (!isSequenceMode && imageEl) {
-          tl.to(imageEl, { opacity: 0.65, duration: 1 }, label);
-        }
-
-        // 2. Salida (fade out + slide up adicional) - se ejecuta si no es la última escena
+        // Salida (solo si no es la última escena)
         if (i < scenes.length - 1) {
-          const exitLabel = `scene_${i}_exit`;
-          tl.to(questionEl, { opacity: 0, y: -30, duration: 1 }, `${label}+=1.5`);
+          tl.to(questionEl, { 
+            opacity: 0, 
+            y: -20, 
+            clipPath: "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)", // Se borra a la derecha
+            duration: EXIT_DUR, 
+            ease: "power1.inOut" 
+          }, blockStart + EXIT_START);
+
           if (!isSequenceMode && imageEl) {
-            tl.to(imageEl, { opacity: 0, duration: 1 }, `${label}+=1.5`);
+            tl.to(imageEl, { opacity: 0, duration: EXIT_DUR }, blockStart + EXIT_START);
           }
         }
       });
@@ -194,68 +235,17 @@ export default function ScrollSequence({
       aria-labelledby="interrogatorio-label"
     >
       {/* Label SSR visible — indexable */}
-      <p
-        id="interrogatorio-label"
-        className="sr-only"
-      >
-        {sectionLabel}
-      </p>
+      <p id="interrogatorio-label" className="sr-only">{sectionLabel}</p>
 
-      {/* ── Panel sticky (lo que se ve en pantalla) ─── */}
+      {/* ── Panel sticky NATIVO de CSS (pantalla completa) ─────── */}
       <div
         ref={panelRef}
-        className="sticky top-0 h-screen w-full flex overflow-hidden"
-        aria-hidden="false"
+        className="sticky top-0 h-screen w-full overflow-hidden"
       >
-        {/* Columna izquierda — Preguntas y microcopy */}
-        <div className="relative w-full md:w-1/2 flex flex-col justify-center px-8 md:px-16 z-10">
-
-          {/* Número de escena — siempre visible, cambia con el scroll */}
-          <p className="font-mono text-xs tracking-[0.5em] uppercase text-[#2a2520] mb-12">
-            {sectionLabel}
-          </p>
-
-          {/* Todas las preguntas están en el DOM desde el servidor (SSR). */}
-          {/* GSAP solo controla opacity/transform — no inyecta nodos. */}
-          {scenes.map((scene, i) => (
-            <div
-              key={i}
-              ref={(el) => { questionRefs.current[i] = el; }}
-              className="absolute left-8 right-8 md:left-16 md:right-0 top-1/2 -translate-y-1/2"
-              style={{ opacity: 0 }} // Inicial: invisible. GSAP lo anima a opacity:1
-              // El contenido ES indexable: está en el HTML. La opacidad es solo visual.
-            >
-              <span className="font-mono text-xs text-[#d97644] tracking-widest block mb-6">
-                0{i + 1} / 0{scenes.length}
-              </span>
-
-              {scene.microcopy && (
-                <p className="font-mono text-xs tracking-wide text-[#3a3530] uppercase mb-8 leading-relaxed">
-                  {scene.microcopy}
-                </p>
-              )}
-
-              <p className="font-display text-2xl md:text-4xl font-light text-[#f3ece1] leading-snug">
-                {scene.question}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Columna derecha — Visual (imagen o canvas) */}
-        <div className="absolute inset-0 md:relative md:w-1/2 h-full overflow-hidden">
-
-          {/* Gradiente oscuro izquierdo para que el texto sea legible en móvil */}
-          <div
-            className="absolute inset-y-0 left-0 w-2/3 md:hidden z-10 pointer-events-none"
-            style={{
-              background: "linear-gradient(to right, #0a0807 40%, transparent)",
-            }}
-            aria-hidden="true"
-          />
-
+        {/* ── Capa visual: canvas o imágenes (fondo, full-screen) ── */}
+        <div className="absolute inset-0">
           {/* Modo PLACEHOLDER: imágenes individuales con crossfade */}
-          {!isSequenceMode && scenes.map((scene, i) => (
+          {!isSequenceMode && scenes.map((scene, i) =>
             scene.frameSrc ? (
               <div
                 key={i}
@@ -265,38 +255,86 @@ export default function ScrollSequence({
                   opacity: 0,
                   backgroundImage: `url(${scene.frameSrc})`,
                   backgroundSize: "cover",
-                  backgroundPosition: "center center", // Safe zone: siempre centrado
+                  backgroundPosition: "center center",
                 }}
                 aria-hidden="true"
               />
             ) : null
-          ))}
+          )}
 
-          {/* Modo SEQUENCE: canvas (se activa al pasar frameList) */}
+          {/* Modo SEQUENCE: canvas tipo Apple */}
           {isSequenceMode && (
             <canvas
               ref={canvasRef}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              style={{ display: "block", objectFit: "cover" }}
               aria-hidden="true"
             />
           )}
+        </div>
 
-          {/* Overlay oscuro base */}
-          <div
-            className="absolute inset-0 bg-[#0a0807]/30 z-[1] pointer-events-none"
-            aria-hidden="true"
-          />
+        {/* ── Gradiente oscuro en la zona del texto (izquierda-inferior) ── */}
+        <div
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{
+            background: [
+              "linear-gradient(to right, rgba(10,8,7,0.92) 0%, rgba(10,8,7,0.55) 55%, transparent 100%)",
+            ].join(", "),
+          }}
+          aria-hidden="true"
+        />
+        {/* Gradiente inferior para dar profundidad */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none z-10"
+          style={{ background: "linear-gradient(to top, rgba(10,8,7,0.8), transparent)" }}
+          aria-hidden="true"
+        />
+
+        {/* ── Textos superpuestos: posicionados izquierda-inferior ── */}
+        <div className="absolute inset-0 z-20 flex items-end">
+          <div className="w-full md:w-3/5 px-8 md:px-16 pb-20 md:pb-24 relative">
+
+            {/* Indicador de escena fijo */}
+            <p className="font-mono text-xs tracking-[0.5em] uppercase text-[#3a3530] mb-8">
+              {sectionLabel}
+            </p>
+
+            {/* Todas las preguntas en el DOM (SSR). GSAP solo mueve opacity/transform. */}
+            {scenes.map((scene, i) => (
+              <div
+                key={i}
+                ref={(el) => { questionRefs.current[i] = el; }}
+                className="absolute bottom-20 md:bottom-24 left-8 md:left-16 right-4 md:right-auto md:max-w-xl"
+                style={{ opacity: 0 }}
+              >
+                {/* Contador escena */}
+                <span className="font-mono text-xs text-[#d97644] tracking-widest block mb-4">
+                  0{i + 1}&nbsp;/&nbsp;0{scenes.length}
+                </span>
+
+                {/* Microcopy */}
+                {scene.microcopy && (
+                  <p className="font-mono text-xs tracking-wide text-[#5c554c] uppercase mb-6 leading-relaxed">
+                    {scene.microcopy}
+                  </p>
+                )}
+
+                {/* Pregunta principal */}
+                <p className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#f3ece1] leading-snug">
+                  {scene.question}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Closing text — fuera del panel sticky ─── */}
-      {/* Se renderiza justo después de la sección pinada */}
+      {/* ── Closing text — fuera del panel sticky ─────── */}
       <div
         ref={closingRef}
         className="sticky bottom-0 left-0 right-0 z-20 flex items-end justify-center pb-24 px-8 pointer-events-none"
         style={{ opacity: 0 }}
       >
-        {/* El texto del golpe final también está en el DOM desde el servidor */}
         <p className="font-display text-2xl md:text-4xl font-light text-[#f3ece1] text-center max-w-2xl leading-tight">
           {closingText}
         </p>

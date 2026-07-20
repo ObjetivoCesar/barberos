@@ -16,7 +16,7 @@ export default function PublicLayout({
       <NavPublic />
 
       {/* Contenido con padding-top para compensar la nav fija (h-16 = 64px) */}
-      <main className="flex-1 pt-16 overflow-x-hidden">
+      <main className="flex-1 pt-16">
         {children}
       </main>
 

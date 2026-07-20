@@ -38,10 +38,11 @@ export async function sendWhatsAppMessage({
         },
       }
     );
-  } catch (error: any) {
-    console.error("[Evolution API] Error sending WhatsApp message:", error);
-    if (error.response?.data) {
-      console.error("[Evolution API] Response data:", JSON.stringify(error.response.data, null, 2));
+  } catch (error) {
+    const axiosError = error as { response?: { data?: unknown }; message?: string };
+    console.error("[Evolution API] Error sending WhatsApp message:", axiosError.message ?? error);
+    if (axiosError.response?.data) {
+      console.error("[Evolution API] Response data:", JSON.stringify(axiosError.response.data, null, 2));
     }
     throw error;
   }

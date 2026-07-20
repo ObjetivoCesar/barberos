@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scripts locales de prueba — no son parte del build de producción
+    "test-webhook.ts",
+    "check-evolution-webhook.ts",
   ]),
 ]);
 

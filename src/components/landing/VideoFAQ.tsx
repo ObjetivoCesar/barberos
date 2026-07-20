@@ -6,7 +6,7 @@ import CinematicScene from "./CinematicScene";
 // ⚠️ COPY PROVISIONAL — pendiente de sello final contra 04-SISTEMA-DE-COMUNICACION.md
 // No publicar a producción sin aprobación explícita de César sobre estos videos.
 
-interface FAQCard {
+export interface FAQCard {
   id: string;
   pregunta: string;
   respuestaCorta: string;
@@ -14,46 +14,14 @@ interface FAQCard {
   videoSrc?: string; // Para cuando César tenga los videos listos (.mp4)
 }
 
-const objeciones: FAQCard[] = [
-  {
-    id: "01",
-    pregunta: "¿Por qué no me sirvió la tarjeta de fidelidad clásica?",
-    respuestaCorta: "Te lo ofrecieron. Pero no te lo dieron. Te vendieron una tarjeta. No una relación.",
-    duracion: "00:30",
-  },
-  {
-    id: "02",
-    pregunta: "¿Lo puedo hacer con ChatGPT?",
-    respuestaCorta: "ChatGPT no tiene el historial de tus clientes en tiempo real, ni sabe quién entró por tu puerta hoy.",
-    duracion: "00:30",
-  },
-  {
-    id: "03",
-    pregunta: "¿Necesito otra aplicación?",
-    respuestaCorta: "No. Cero apps. Tus clientes usan su WhatsApp de siempre. Tú entras desde tu navegador sin contraseñas.",
-    duracion: "00:30",
-  },
-  {
-    id: "04",
-    pregunta: "¿Qué pasa si no tengo tiempo?",
-    respuestaCorta: "El registro toma 3 segundos en el check-in. El sistema hace el resto del seguimiento en segundo plano.",
-    duracion: "00:30",
-  },
-  {
-    id: "05",
-    pregunta: "¿Y si tengo varios barberos?",
-    respuestaCorta: "Cada barbero tiene su cuenta. El sistema te dice quién está fidelizando clientes de verdad y quién no.",
-    duracion: "00:30",
-  },
-  {
-    id: "06",
-    pregunta: "¿Y si mi cliente no usa tecnología?",
-    respuestaCorta: "Si sabe enviar un mensaje por WhatsApp, sabe usar BarberOS. Y si no, lo registras tú a mano en un clic.",
-    duracion: "00:30",
-  },
-];
+export interface VideoFAQProps {
+  label: string;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
+  items: FAQCard[];
+}
 
-export default function VideoFAQ() {
+export default function VideoFAQ({ label, title, subtitle, items }: VideoFAQProps) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
@@ -62,20 +30,18 @@ export default function VideoFAQ() {
       <div className="max-w-6xl mx-auto">
         <CinematicScene>
           <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644] mb-8">
-            89 / OBJECIONES
+            {label}
           </p>
           <h2 id="video-faq-label" className="font-display text-4xl md:text-6xl font-light text-[#f3ece1] leading-tight mb-4">
-            No un acordeón. <em className="text-[#d97644] not-italic font-normal">Tu cara.</em>
-            <br />
-            Treinta segundos por respuesta.
+            {title}
           </h2>
           <p className="font-display italic text-[#a89e90] text-lg font-light mb-20">
-            Pasa el cursor. Mira a los ojos.
+            {subtitle}
           </p>
         </CinematicScene>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {objeciones.map((card, i) => {
+          {items.map((card, i) => {
             const isHovered = hoveredCard === card.id;
             const isPlaying = activeVideo === card.id;
 

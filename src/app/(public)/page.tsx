@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import StructuredData from "@/components/shared/StructuredData";
 import CinematicScene from "@/components/landing/CinematicScene";
-import ScrollSequence, { type SceneData } from "@/components/landing/ScrollSequence";
+import VideoScrollSection, { type SceneOverlay } from "@/components/landing/VideoScrollSection";
 import MarqueeDivisor from "@/components/landing/MarqueeDivisor";
-import VideoFAQ from "@/components/landing/VideoFAQ";
+import VideoFAQ, { type FAQCard } from "@/components/landing/VideoFAQ";
 
 // ⚠️ COPY PROVISIONAL — pendiente de sello final contra 04-SISTEMA-DE-COMUNICACION.md
 // No publicar a producción sin aprobación explícita de César sobre este texto.
@@ -102,51 +102,109 @@ const faqSchema = {
 // Reprograman el marco mental antes de presentar el producto.
 // Referencia: 02-ARQUITECTURA-ESTRATEGICA.md v2.1
 //
-// IMÁGENES PLACEHOLDER: /public/interrogatorio/frame-01..05.png
-// Producción final: secuencias AI-generadas (Flow) con César como protagonista.
-// Reemplazar frameSrc por frameList (array de 20-40 imgs) para activar modo canvas.
-// ──────────────────────────────────────────────────────────────
-const interrogatorioScenes: SceneData[] = [
+// 33 frames reales del video — modo canvas Apple continuo desde el hero.
+// Para agregar más frames: solo añade más paths a este array.
+const ESCENA1_FRAMES = Array.from({ length: 33 }, (_, i) =>
+  `/interrogatorio/escena1/ezgif-frame-${String(i + 1).padStart(3, "0")}.jpg`
+);
+
+// Preguntas del interrogatorio — sin frameSrc, el canvas es global
+const interrogatorioScenes: SceneOverlay[] = [
   {
-    // Visual: revisando el dinero de la caja
     question: "¿Cuánto necesitas facturar esta semana para cubrir arriendo, sueldos y servicios?",
     microcopy: "Todo negocio rentable comienza con una medición correcta.",
-    frameSrc: "/interrogatorio/frame-01.png",
-    productionNote: "César contando billetes en la caja, cámara lenta, plano detalle de manos. Barbería de fondo con poca luz.",
   },
   {
-    // Visual: observando las estaciones de trabajo
     question: "¿Sabes cuál de tus barberos genera más clientes recurrentes?",
     microcopy: "No puedes mejorar lo que no puedes medir.",
-    frameSrc: "/interrogatorio/frame-02.png",
-    productionNote: "César de pie mirando hacia los puestos de trabajo de sus barberos. Vista posterior, silhouette.",
   },
   {
-    // Visual: barbería vacía
     question: "¿Sabes cuántos de tus clientes de esta semana van a volver la próxima?",
     microcopy: "Cada cliente que no regresa es una oportunidad perdida.",
-    frameSrc: "/interrogatorio/frame-03.png",
-    productionNote: "Silla vacía en primer plano. César mirando hacia ella de fondo. Luz tenue de final de día.",
   },
   {
-    // Visual: apagando luces, tomando las llaves
     question: "Si no vuelven suficientes... ¿de dónde sale la diferencia?",
     microcopy: "La recurrencia vale más que la publicidad.",
-    frameSrc: "/interrogatorio/frame-04.png",
-    productionNote: "Plano detalle: mano de César agarrando llaves, la otra mano apagando la luz. Fondo oscurecido.",
   },
   {
-    // Visual: cerrando la puerta, alejándose
     question: "¿Cuánto de lo que no facturaste este mes se fue por la puerta sin que lo notaras?",
     microcopy: "Los datos convierten la intuición en estrategia.",
-    frameSrc: "/interrogatorio/frame-05.png",
-    productionNote: "César cerrando la puerta de la barbería. Vista desde dentro. Luz de la calle entrando. Camina lentamente hacia afuera.",
   },
 ];
 
-// El golpe final — aparece tras la última pregunta
 const GOLPE_FINAL =
   "Si no puedes responder estas preguntas... no estás administrando una barbería. Estás adivinando.";
+
+const objecionesHome: FAQCard[] = [
+  {
+    id: "01",
+    pregunta: "¿Por qué no me sirvió la tarjeta de fidelidad clásica?",
+    respuestaCorta: "Te lo ofrecieron. Pero no te lo dieron. Te vendieron una tarjeta. No una relación.",
+    duracion: "00:30",
+  },
+  {
+    id: "02",
+    pregunta: "¿Lo puedo hacer con ChatGPT?",
+    respuestaCorta: "ChatGPT no tiene el historial de tus clientes en tiempo real, ni sabe quién entró por tu puerta hoy.",
+    duracion: "00:30",
+  },
+  {
+    id: "03",
+    pregunta: "¿Necesito otra aplicación?",
+    respuestaCorta: "No. Cero apps. Tus clientes usan su WhatsApp de siempre. Tú entras desde tu navegador sin contraseñas.",
+    duracion: "00:30",
+  },
+  {
+    id: "04",
+    pregunta: "¿Qué pasa si no tengo tiempo?",
+    respuestaCorta: "El registro toma 3 segundos en el check-in. El sistema hace el resto del seguimiento en segundo plano.",
+    duracion: "00:30",
+  },
+  {
+    id: "05",
+    pregunta: "¿Y si tengo varios barberos?",
+    respuestaCorta: "Cada barbero tiene su cuenta. El sistema te dice quién está fidelizando clientes de verdad y quién no.",
+    duracion: "00:30",
+  },
+  {
+    id: "06",
+    pregunta: "¿Y si mi cliente no usa tecnología?",
+    respuestaCorta: "Si sabe enviar un mensaje por WhatsApp, sabe usar BarberOS. Y si no, lo registras tú a mano en un clic.",
+    duracion: "00:30",
+  },
+];
+
+// Hero content — se pasa como prop a VideoScrollSection
+// El canvas del video está detrás desde el primer pixel
+const heroContent = (
+  <>
+    <div className="flex items-center gap-3 mb-16 justify-center">
+      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-blink" aria-hidden="true" />
+      <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644]">
+        REC · 24FPS · ESC 01
+      </p>
+    </div>
+    <h1
+      id="h1-principal"
+      className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-[#f3ece1] leading-[1.05] max-w-4xl"
+    >
+      ¿Cuántos clientes tiene{" "}
+      <em className="not-italic text-[#d97644]">realmente</em>{" "}
+      tu barbería?
+    </h1>
+    <p className="font-display italic text-lg md:text-xl text-[#5c554c] mt-16 font-light max-w-md leading-relaxed">
+      La intuición sirve para cortar cabello.
+      <br />
+      Los negocios crecen con datos.
+    </p>
+    <span
+      className="block font-mono text-xs tracking-[0.4em] uppercase text-[#3a3530] animate-bounce mt-20"
+      aria-hidden="true"
+    >
+      ↓
+    </span>
+  </>
+);
 
 export default function InicioPage() {
   return (
@@ -156,67 +214,26 @@ export default function InicioPage() {
       <StructuredData data={faqSchema} />
 
       {/* ══════════════════════════════════════════
-          ESCENA 1 — El Silencio
-          Estado mental: llegada sin contexto.
-          Acción: plantar la pregunta que incomoda.
-          + Frase de cambio de mentalidad como transición al scroll.
+          ESCENAS 1+2 — Hero + Interrogatorio
+          Un canvas continuo cubre ambas secciones.
+          El video corre desde el primer pixel visible.
+          Las preguntas aparecen con clip-path reveal.
       ══════════════════════════════════════════ */}
-      <section
-        className="min-h-screen flex flex-col items-center justify-center px-6 text-center border-b border-[#1c1917]"
-        aria-labelledby="h1-principal"
-      >
-        <CinematicScene threshold={0.1}>
-          <div className="flex items-center gap-3 mb-16 justify-center">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#d97644] animate-blink" aria-hidden="true" />
-            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644]">
-              REC · 24FPS · ESC 01
-            </p>
-          </div>
-          <h1
-            id="h1-principal"
-            className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-[#f3ece1] leading-[1.05] max-w-4xl"
-          >
-            ¿Cuántos clientes tiene{" "}
-            <em className="not-italic text-[#d97644]">realmente</em>{" "}
-            tu barbería?
-          </h1>
-
-          {/* Frase puente — prepara el cerebro para aceptar las preguntas */}
-          <p className="font-display italic text-lg md:text-xl text-[#5c554c] mt-16 font-light max-w-md leading-relaxed">
-            La intuición sirve para cortar cabello.
-            <br />
-            Los negocios crecen con datos.
-          </p>
-        </CinematicScene>
-
-        <CinematicScene delay={500} className="mt-20">
-          <span
-            className="block font-mono text-xs tracking-[0.4em] uppercase text-[#3a3530] animate-bounce"
-            aria-hidden="true"
-          >
-            ↓
-          </span>
-        </CinematicScene>
-      </section>
-
-      {/* ══════════════════════════════════════════
-          ESCENA 2 — El Interrogatorio (GSAP ScrollSequence)
-          Estado mental: incertidumbre creciente → "clic".
-          Arco: dinero → equipo → clientes → consecuencia → cierre simbólico.
-          Todo el texto está en el DOM (SSR). GSAP solo anima opacity/transform.
-          Las imágenes placeholder serán reemplazadas por la secuencia AI de César.
-      ══════════════════════════════════════════ */}
-      <ScrollSequence
+      <VideoScrollSection
+        frames={ESCENA1_FRAMES}
         scenes={interrogatorioScenes}
+        heroContent={heroContent}
         closingText={GOLPE_FINAL}
-        scrollDurationVh={120}
+        scrollHeight="320vh"
         sectionLabel="Cinco preguntas"
       />
 
+      {/* Divisor con texto en movimiento infinito (Marquee) para romper el ritmo de lectura */}
+      <MarqueeDivisor text="Adivinar si vas a sobrevivir este mes. / El costo de no saber. / Arriendo. / Sueldos. / Fuga silenciosa de clientes. / Administrar a ciegas. / ¿Saber o adivinar? / Certeza contra la ruina. /" />
+
       {/* ══════════════════════════════════════════
           ESCENA 3 — El Golpe (Pantalla negra)
-          Ya está como closingText dentro de ScrollSequence.
-          Esta sección reafirma la transición de atmósfera.
+          Esta sección reafirma la transición de atmósfera tras el corte del marquee.
       ══════════════════════════════════════════ */}
       <section className="py-32 bg-[#000000] flex items-center justify-center px-6 border-b border-[#1c1917]">
         <CinematicScene threshold={0.2} className="max-w-3xl text-center">
@@ -232,9 +249,6 @@ export default function InicioPage() {
           </blockquote>
         </CinematicScene>
       </section>
-
-      {/* Divisor con texto en movimiento infinito (Marquee) para romper el ritmo de lectura */}
-      <MarqueeDivisor text="Cliente entra. / Se corta. / Se ríe. / Sale. / Silencio. / WhatsApp. / Sonríe. / Tres semanas. / Regresa. /" />
 
       {/* ══════════════════════════════════════════
           ESCENA 4 — La Consecuencia
@@ -516,7 +530,18 @@ export default function InicioPage() {
           Reemplaza las preguntas frecuentes tradicionales por el grid de videos interactivos.
           Referencia: 03-ARQUITECTURA-WEB.md
       ══════════════════════════════════════════ */}
-      <VideoFAQ />
+      <VideoFAQ
+        label="89 / OBJECIONES"
+        title={
+          <>
+            Conocer tus números te hace <em className="text-[#d97644] not-italic font-normal">empresario.</em>
+            <br />
+            Resolvemos las dudas que te detienen.
+          </>
+        }
+        subtitle="Pasa el cursor. Respuestas directas en 30 segundos."
+        items={objecionesHome}
+      />
 
       {/* ══════════════════════════════════════════
           ESCENA 10 — El Cierre

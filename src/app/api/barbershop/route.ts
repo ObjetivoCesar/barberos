@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const barbershopId = (request as any).headers.get("x-barbershop-id");
+    const barbershopId = request.headers.get("x-barbershop-id");
     if (!barbershopId) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }

@@ -77,9 +77,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(barbershop, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Admin POST API] Error:", error);
-    if (error.code === "P2002") {
+    if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002") {
       return NextResponse.json({ error: "El número de WhatsApp ya está registrado." }, { status: 400 });
     }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

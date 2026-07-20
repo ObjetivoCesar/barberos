@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import FAQSection from "@/components/shared/FAQSection";
+import Image from "next/image";
+import VideoFAQ, { type FAQCard } from "@/components/landing/VideoFAQ";
 import CTABlock from "@/components/shared/CTABlock";
 import StructuredData from "@/components/shared/StructuredData";
 
@@ -27,26 +28,34 @@ export const metadata: Metadata = {
   },
 };
 
-const faqPrecio = [
+const objecionesPrecio: FAQCard[] = [
   {
+    id: "01",
     pregunta: "¿Hay contrato de permanencia?",
-    respuesta:
+    respuestaCorta:
       "No. La mensualidad se renueva mes a mes. Puedes cancelar cuando quieras sin penalización.",
+    duracion: "00:30",
   },
   {
+    id: "02",
     pregunta: "¿Qué pasa si dejo de pagar la mensualidad?",
-    respuesta:
+    respuestaCorta:
       "Tu acceso al panel queda suspendido temporalmente. Tus datos no se eliminan — cuando reactivás, todo sigue como lo dejaste.",
+    duracion: "00:30",
   },
   {
+    id: "03",
     pregunta: "¿El setup se repite si cambio de plan?",
-    respuesta:
+    respuestaCorta:
       "No. El setup es pago único por activación de tu barbería. Si migras de Pro a Premium, solo pagas la diferencia de mensualidad.",
+    duracion: "00:30",
   },
   {
+    id: "04",
     pregunta: "¿El precio puede cambiar?",
-    respuesta:
+    respuestaCorta:
       "Los precios actuales son de lanzamiento para los primeros 50 pilotos confirmados. Las barberías que ingresen ahora conservan ese precio mientras mantengan su cuenta activa.",
+    duracion: "00:30",
   },
 ];
 
@@ -117,10 +126,10 @@ const productoPremiumSchema = {
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqPrecio.map((item) => ({
+  mainEntity: objecionesPrecio.map((item) => ({
     "@type": "Question",
     name: item.pregunta,
-    acceptedAnswer: { "@type": "Answer", text: item.respuesta },
+    acceptedAnswer: { "@type": "Answer", text: item.respuestaCorta },
   })),
 };
 
@@ -164,19 +173,37 @@ export default function PreciosPage() {
       <StructuredData data={faqSchema} />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-b border-[#2a2520]">
-        <div className="max-w-4xl mx-auto">
-          <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
-            Precios / Transparencia sin excusas
-          </p>
-          <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
-            Cuánto cuesta y{" "}
-            <em className="not-italic text-[#d97644]">qué obtienes exactamente</em>.
-          </h1>
-          <p className="font-display italic text-xl text-[#a89e90] font-light max-w-2xl leading-relaxed">
-            Un pago único de activación. Una mensualidad baja. Sin letra pequeña,
-            sin cargos escondidos, sin permanencia.
-          </p>
+      <section className="pt-24 pb-12 px-6 border-b border-[#2a2520]">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-1">
+            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
+              Precios / Transparencia sin excusas
+            </p>
+            <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
+              Cuánto cuesta y{" "}
+              <em className="not-italic text-[#d97644]">qué obtienes exactamente</em>.
+            </h1>
+            <p className="font-display italic text-xl text-[#a89e90] font-light max-w-xl leading-relaxed mb-8">
+              Un pago único de activación. Una mensualidad baja. Sin letra pequeña,
+              sin cargos escondidos, sin permanencia.
+            </p>
+          </div>
+          
+          <div className="flex-1 w-full relative">
+            <div className="relative aspect-video w-full bg-[#131110] border border-[#2a2520] shadow-2xl overflow-hidden rounded-sm group">
+              <Image
+                src="/paginas/precios.webp"
+                alt="Transparencia en precios"
+                fill
+                className="object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                priority
+              />
+              <div className="absolute inset-0 border border-[#d97644]/10 pointer-events-none" />
+            </div>
+            <div className="absolute -bottom-4 -left-4 font-mono text-xs text-[#5c554c] tracking-widest hidden md:block">
+              REC // PRICING
+            </div>
+          </div>
         </div>
       </section>
 
@@ -251,7 +278,18 @@ export default function PreciosPage() {
       </section>
 
       {/* ── FAQ DE PRECIO ─────────────────────────────────────── */}
-      <FAQSection titulo="Preguntas sobre el precio" items={faqPrecio} />
+      <VideoFAQ
+        label="PREGUNTAS DE PRECIO"
+        title={
+          <>
+            Transparencia <em className="text-[#d97644] not-italic font-normal">total.</em>
+            <br />
+            Respuestas claras.
+          </>
+        }
+        subtitle="Pasa el cursor. Respuestas directas en 30 segundos."
+        items={objecionesPrecio}
+      />
 
       {/* ── CTA ÚNICO ────────────────────────────────────────── */}
       <CTABlock

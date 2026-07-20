@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import CTABlock from "@/components/shared/CTABlock";
 import StructuredData from "@/components/shared/StructuredData";
 
@@ -72,19 +73,37 @@ export default function ResenasPage() {
       <StructuredData data={aggregateRatingSchema} />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-b border-[#2a2520]">
-        <div className="max-w-4xl mx-auto">
-          <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
-            Reseñas / Prueba social verificada
-          </p>
-          <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
-            ¿Puedes{" "}
-            <em className="not-italic text-[#d97644]">confiar en BarberOS</em>?
-          </h1>
-          <p className="font-display italic text-xl text-[#a89e90] font-light max-w-2xl leading-relaxed">
-            No lo decimos nosotros. Lo dicen las barberías que lo usan todos los
-            días.
-          </p>
+      <section className="pt-24 pb-12 px-6 border-b border-[#2a2520]">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-1">
+            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
+              Reseñas / Prueba social verificada
+            </p>
+            <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
+              ¿Puedes{" "}
+              <em className="not-italic text-[#d97644]">confiar en BarberOS</em>?
+            </h1>
+            <p className="font-display italic text-xl text-[#a89e90] font-light max-w-xl leading-relaxed mb-8">
+              No lo decimos nosotros. Lo dicen las barberías que lo usan todos los
+              días.
+            </p>
+          </div>
+
+          <div className="flex-1 w-full relative">
+            <div className="relative aspect-video w-full bg-[#131110] border border-[#2a2520] shadow-2xl overflow-hidden rounded-sm group">
+              <Image
+                src="/paginas/reseñas.webp"
+                alt="Barberías que confían en BarberOS"
+                fill
+                className="object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                priority
+              />
+              <div className="absolute inset-0 border border-[#d97644]/10 pointer-events-none" />
+            </div>
+            <div className="absolute -bottom-4 -left-4 font-mono text-xs text-[#5c554c] tracking-widest hidden md:block">
+              REC // REVIEWS
+            </div>
+          </div>
         </div>
       </section>
 

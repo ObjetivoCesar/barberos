@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import FAQSection from "@/components/shared/FAQSection";
+import Image from "next/image";
+import VideoFAQ, { type FAQCard } from "@/components/landing/VideoFAQ";
 import CTABlock from "@/components/shared/CTABlock";
 import StructuredData from "@/components/shared/StructuredData";
 
@@ -22,26 +23,34 @@ export const metadata: Metadata = {
   },
 };
 
-const faqItems = [
+const faqItems: FAQCard[] = [
   {
+    id: "01",
     pregunta: "¿Qué pasa si un cliente no tiene WhatsApp?",
-    respuesta:
-      "WhatsApp tiene más del 90% de penetración en el mercado objetivo. Para los casos excepcionales, el check-in también puede hacerse manualmente desde el panel.",
+    respuestaCorta:
+      "WhatsApp tiene más del 90% de penetración. Para casos excepcionales, haces el check-in manual desde el panel.",
+    duracion: "00:30",
   },
   {
+    id: "02",
     pregunta: "¿Necesito saber programar para configurar BarberOS?",
-    respuesta:
-      "No. El onboarding completo tarda menos de 30 minutos y no requiere ningún conocimiento técnico. Nosotros hacemos la configuración inicial contigo.",
+    respuestaCorta:
+      "No. El onboarding tarda menos de 30 minutos y nosotros hacemos la configuración inicial contigo.",
+    duracion: "00:30",
   },
   {
+    id: "03",
     pregunta: "¿Cómo sé que el link mágico es seguro?",
-    respuesta:
-      "Cada link es único, de uso único y expira en 15 minutos. Es el mismo mecanismo que usan plataformas bancarias modernas para autenticación sin contraseña.",
+    respuestaCorta:
+      "Cada link es único y expira en 15 minutos. Es el mismo mecanismo de los bancos modernos para entrar sin contraseña.",
+    duracion: "00:30",
   },
   {
+    id: "04",
     pregunta: "¿El sistema funciona si no tengo internet en la barbería?",
-    respuesta:
-      "El panel principal requiere conexión. Sin embargo, los clientes pueden enviar su WhatsApp de check-in y el sistema lo procesa en cuanto hay señal.",
+    respuestaCorta:
+      "El panel requiere conexión, pero los clientes pueden enviar su WhatsApp y el sistema lo procesa en cuanto hay señal.",
+    duracion: "00:30",
   },
 ];
 
@@ -84,7 +93,7 @@ const faqSchema = {
   mainEntity: faqItems.map((item) => ({
     "@type": "Question",
     name: item.pregunta,
-    acceptedAnswer: { "@type": "Answer", text: item.respuesta },
+    acceptedAnswer: { "@type": "Answer", text: item.respuestaCorta },
   })),
 };
 
@@ -95,19 +104,39 @@ export default function ComoFuncionaPage() {
       <StructuredData data={faqSchema} />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-b border-[#2a2520]">
-        <div className="max-w-4xl mx-auto">
-          <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
-            Cómo Funciona / Sin complicaciones técnicas
-          </p>
-          <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
-            Tu barbería, en{" "}
-            <em className="not-italic text-[#d97644]">piloto automático</em>.
-          </h1>
-          <p className="font-display italic text-xl text-[#a89e90] font-light max-w-2xl leading-relaxed">
-            BarberOS se conecta a tu WhatsApp de negocio y empieza a trabajar
-            desde el primer check-in. Sin instalaciones. Sin formularios.
-          </p>
+      <section className="pt-24 pb-12 px-6 border-b border-[#2a2520]">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-1">
+            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#5c554c] mb-8">
+              Cómo Funciona / Sin complicaciones técnicas
+            </p>
+            <h1 className="font-display text-5xl md:text-6xl font-light leading-[1.1] mb-8 text-[#f3ece1]">
+              Tu barbería, en{" "}
+              <em className="not-italic text-[#d97644]">piloto automático</em>.
+            </h1>
+            <p className="font-display italic text-xl text-[#a89e90] font-light max-w-xl leading-relaxed mb-8">
+              BarberOS se conecta a tu WhatsApp de negocio y empieza a trabajar
+              desde el primer check-in. Sin instalaciones. Sin formularios.
+            </p>
+          </div>
+          
+          <div className="flex-1 w-full relative">
+            {/* Imagen del Hero */}
+            <div className="relative aspect-video w-full bg-[#131110] border border-[#2a2520] shadow-2xl overflow-hidden rounded-sm group">
+              <Image
+                src="/paginas/Como-funciona.webp"
+                alt="Interfaz de BarberOS en piloto automático"
+                fill
+                className="object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                priority
+              />
+              <div className="absolute inset-0 border border-[#d97644]/10 pointer-events-none" />
+            </div>
+            {/* Elemento decorativo */}
+            <div className="absolute -bottom-4 -left-4 font-mono text-xs text-[#5c554c] tracking-widest hidden md:block">
+              REC // DASHBOARD
+            </div>
+          </div>
         </div>
       </section>
 
@@ -131,7 +160,7 @@ export default function ComoFuncionaPage() {
               },
               {
                 paso: "02",
-                titulo: "El barbero aprueba y registra el corte",
+                titulo: "El encargado aprueba con un clic",
                 detalle:
                   "Una notificación aparece en tu panel. Con un toque apruebas el corte. El sistema actualiza las métricas del día al instante.",
               },
@@ -214,7 +243,7 @@ export default function ComoFuncionaPage() {
               <div className="flex items-start gap-3">
                 <span className="text-[#d97644] shrink-0">→</span>
                 <p className="text-[#a89e90]">
-                  Recibes: <span className="text-[#f3ece1]">"Tu enlace de acceso: [link]"</span>
+                  Recibes: <span className="text-[#f3ece1]">&quot;Tu enlace de acceso: [link]&quot;</span>
                 </p>
               </div>
               <div className="flex items-start gap-3 pl-4">
@@ -297,7 +326,18 @@ export default function ComoFuncionaPage() {
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────── */}
-      <FAQSection items={faqItems} />
+      <VideoFAQ
+        label="DUDAS TÉCNICAS"
+        title={
+          <>
+            Automatizar tu barbería <em className="text-[#d97644] not-italic font-normal">es así de simple.</em>
+            <br />
+            Resolvemos tus dudas de implementación.
+          </>
+        }
+        subtitle="Pasa el cursor. Respuestas directas en 30 segundos."
+        items={faqItems}
+      />
 
       {/* ── CTA ÚNICO ────────────────────────────────────────── */}
       <CTABlock
