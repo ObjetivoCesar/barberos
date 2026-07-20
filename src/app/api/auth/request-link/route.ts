@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Envío del enlace por WhatsApp
-    const authLink = `http://localhost:3000/api/auth/verify?token=${token}`;
+    const protocol = request.headers.get("x-forwarded-proto") || "http";
+    const host = request.headers.get("host") || "localhost:3000";
+    const authLink = `${protocol}://${host}/api/auth/verify?token=${token}`;
     const message = `🔑 ¡Hola, bro! Aquí tienes tu enlace mágico de acceso para entrar a tu panel de BarberOS. Vence en 15 minutos:\n\n${authLink}\n\nNo compartas este enlace con nadie.`;
 
     await sendWhatsAppMessage({
