@@ -67,7 +67,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[Request Link API] Error:", error);
     return NextResponse.json(
-      { success: false, error: "Error interno al procesar el enlace mágico." },
+      { 
+        success: false, 
+        error: "Error interno al procesar el enlace mágico.",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

@@ -30,6 +30,7 @@ export default function LoginPage() {
         setMessage("¡Enlace mágico enviado! Revisa tu WhatsApp para iniciar sesión.");
       } else {
         const data = await response.json();
+        if (data.details) console.error("Error backend:", data.details);
         setStatus("error");
         setMessage(data.error || "No pudimos enviar tu enlace. Intenta de nuevo.");
       }

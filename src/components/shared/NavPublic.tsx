@@ -24,104 +24,109 @@ export default function NavPublic() {
   // Bloquear scroll del body cuando el menú está abierto
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [menuOpen]);
 
   return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 border-b border-[#2a2520] bg-[#0a0807]/95 backdrop-blur-sm"
-      aria-label="Navegación principal"
-    >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-        {/* Logotipo */}
-        <Link
-          href="/"
-          className="font-display text-xl font-light tracking-widest text-[#f3ece1] hover:text-[#d97644] transition-colors"
-          aria-label="BarberOS — Inicio"
-        >
-          BarberOS
-        </Link>
-
-        {/* Links de navegación — desktop */}
-        <ul className="hidden md:flex items-center gap-8" role="list">
-          {navLinks.map(({ href, label }) => {
-            const isActive =
-              href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(href);
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`font-mono text-xs tracking-[0.2em] uppercase transition-colors ${
-                    isActive
-                      ? "text-[#d97644]"
-                      : "text-[#5c554c] hover:text-[#a89e90]"
-                  }`}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        {/* Acciones derecha */}
-        <div className="flex items-center gap-4">
-          {/* CTA persistente — visible siempre */}
+    <>
+      {/* ── BARRA SUPERIOR ────────────────────────────────────── */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[#2a2520] bg-[#0a0807]/95 backdrop-blur-sm"
+        aria-label="Navegación principal"
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-full">
+          {/* Logotipo */}
           <Link
-            href="/acceso"
-            className="font-mono text-xs tracking-[0.2em] uppercase text-[#0a0807] bg-[#d97644] px-5 py-2 hover:bg-[#e8854f] transition-colors"
+            href="/"
+            className="font-display text-xl font-light tracking-widest text-[#f3ece1] hover:text-[#d97644] transition-colors"
+            aria-label="BarberOS — Inicio"
           >
-            Acceder
+            BarberOS
           </Link>
 
-          {/* Hamburger — solo mobile */}
-          <button
-            className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] group"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            <span
-              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 origin-center ${
-                menuOpen ? "rotate-45 translate-y-[6.5px]" : ""
-              }`}
-            />
-            <span
-              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 ${
-                menuOpen ? "opacity-0 scale-x-0" : ""
-              }`}
-            />
-            <span
-              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 origin-center ${
-                menuOpen ? "-rotate-45 -translate-y-[6.5px]" : ""
-              }`}
-            />
-          </button>
-        </div>
-      </div>
+          {/* Links desktop */}
+          <ul className="hidden md:flex items-center gap-8" role="list">
+            {navLinks.map(({ href, label }) => {
+              const isActive =
+                href === "/" ? pathname === "/" : pathname.startsWith(href);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className={`font-mono text-xs tracking-[0.2em] uppercase transition-colors ${
+                      isActive
+                        ? "text-[#d97644]"
+                        : "text-[#5c554c] hover:text-[#a89e90]"
+                    }`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
-      {/* Menú móvil — overlay full screen */}
+          {/* Derecha: CTA + hamburger */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/acceso"
+              className="font-mono text-xs tracking-[0.2em] uppercase text-[#0a0807] bg-[#d97644] px-4 py-2 hover:bg-[#e8854f] transition-colors"
+            >
+              Acceder
+            </Link>
+
+            {/* Hamburger — solo mobile */}
+            <button
+              className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px]"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              <span
+                className={`block h-[1.5px] w-5 bg-[#a89e90] transition-all duration-300 origin-center ${
+                  menuOpen ? "rotate-45 translate-y-[6.5px]" : ""
+                }`}
+              />
+              <span
+                className={`block h-[1.5px] w-5 bg-[#a89e90] transition-all duration-300 ${
+                  menuOpen ? "opacity-0 scale-x-0" : ""
+                }`}
+              />
+              <span
+                className={`block h-[1.5px] w-5 bg-[#a89e90] transition-all duration-300 origin-center ${
+                  menuOpen ? "-rotate-45 -translate-y-[6.5px]" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── OVERLAY MENÚ MOBILE ────────────────────────────────── */}
+      {/* FUERA del <nav> para evitar que quede atrapado en su stacking context */}
       <div
-        className={`md:hidden fixed inset-0 top-16 bg-[#0a0807]/98 backdrop-blur-md z-40 transition-all duration-300 ${
-          menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        className={`fixed inset-0 z-40 bg-[#0a0807] transition-all duration-300 flex flex-col items-center justify-center gap-10 md:hidden ${
+          menuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         aria-hidden={!menuOpen}
       >
-        <ul className="flex flex-col items-center justify-center h-full gap-10" role="list">
+        <ul className="flex flex-col items-center gap-8" role="list">
           {navLinks.map(({ href, label }) => {
             const isActive =
-              href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(href);
+              href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <li key={href}>
                 <Link
                   href={href}
-                  className={`font-display text-3xl font-light tracking-widest transition-colors ${
-                    isActive ? "text-[#d97644]" : "text-[#f3ece1] hover:text-[#d97644]"
+                  className={`font-display text-4xl font-light tracking-widest transition-colors ${
+                    isActive
+                      ? "text-[#d97644]"
+                      : "text-[#f3ece1] hover:text-[#d97644]"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => setMenuOpen(false)}
@@ -131,18 +136,16 @@ export default function NavPublic() {
               </li>
             );
           })}
-
-          <li className="mt-4">
-            <Link
-              href="/acceso"
-              className="font-mono text-sm tracking-[0.3em] uppercase text-[#0a0807] bg-[#d97644] px-8 py-4 hover:bg-[#e8854f] transition-colors block"
-              onClick={() => setMenuOpen(false)}
-            >
-              Acceder
-            </Link>
-          </li>
         </ul>
+
+        <Link
+          href="/acceso"
+          className="font-mono text-sm tracking-[0.3em] uppercase text-[#0a0807] bg-[#d97644] px-10 py-4 hover:bg-[#e8854f] transition-colors"
+          onClick={() => setMenuOpen(false)}
+        >
+          Acceder
+        </Link>
       </div>
-    </nav>
+    </>
   );
 }

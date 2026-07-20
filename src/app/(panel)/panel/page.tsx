@@ -4,35 +4,29 @@ import ApprovalQueue from "@/components/ApprovalQueue";
 import RegisterVisitButton from "@/components/RegisterVisitButton";
 
 export default async function DashboardPage() {
-  // 1. Verificar sesión de forma segura y obtener barbershopId
   const session = await verifySession();
   const barbershopId = session.barbershopId;
 
-  // 2. Obtener detalles de la barbería
   const barbershop = await prisma.barbershop.findUnique({
     where: { id: barbershopId },
   });
 
   if (!barbershop) {
     return (
-      <div className="p-12 text-center">
+      <div className="p-6 text-center">
         <h2 className="text-2xl text-[#d97644]">Error: Barbería no encontrada</h2>
       </div>
     );
   }
 
-  // --- OBTENER MÉTRICAS REALES ---
-
-  // Obtener IDs de todos los clientes de esta barbería
   const customers = await prisma.barberCustomer.findMany({
     where: { barbershopId },
   });
   const customerIds = customers.map((c) => c.id);
 
-  // Cortes hoy (visitas APPROVED creadas hoy en zona horaria America/Guayaquil)
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   const cutsToday = await prisma.barberVisit.count({
     where: {
       customerId: { in: customerIds },
@@ -41,34 +35,24 @@ export default async function DashboardPage() {
     },
   });
 
-  // Clientes totales
   const totalCustomers = customers.length;
 
-  // Nuevos clientes este mes
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const newCustomersThisMonth = await prisma.barberCustomer.count({
     where: {
       barbershopId,
-      lastVisitAt: { gte: startOfMonth }, // Usamos lastVisitAt como proxy o fecha de creación aproximada
+      lastVisitAt: { gte: startOfMonth },
     },
   });
 
-  // Clientes recurrentes (con 2 o más cortes acumulados)
   const recurrentCustomers = customers.filter((c) => c.cutsCount >= 2).length;
 
-  // --- HISTORIAL / LIBRO DIARIO ---
-  // Obtener las últimas 10 visitas registradas
   const recentVisitsData = await prisma.barberVisit.findMany({
-    where: {
-      customerId: { in: customerIds },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where: { customerId: { in: customerIds } },
+    orderBy: { createdAt: "desc" },
     take: 10,
   });
 
-  // Mapear visitas con los datos del cliente
   const recentVisits = recentVisitsData.map((visit) => {
     const customer = customers.find((c) => c.id === visit.customerId);
     return {
@@ -80,56 +64,50 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <header className="mb-16 flex justify-between items-end">
+    <div className="max-w-4xl mx-auto space-y-8">
+
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
         <div>
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mb-2">
+          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#5c554c] mb-1">
             Resumen General
           </p>
-          <h2 className="font-display text-5xl font-light">{barbershop.name}</h2>
+          <h2 className="font-display text-3xl sm:text-4xl font-light leading-tight">
+            {barbershop.name}
+          </h2>
         </div>
-        <div className="text-right">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mb-1">
-            Estado Sistema
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-[#d97644] rounded-full animate-pulse"></span>
-            <span className="font-mono text-sm text-[#d97644]">
-              {barbershop.connectionStatus === "CONNECTED" ? "Activo" : "Desconectado"}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 bg-[#d97644] rounded-full animate-pulse" />
+          <span className="font-mono text-xs text-[#d97644]">
+            {barbershop.connectionStatus === "CONNECTED" ? "Activo" : "Desconectado"}
+          </span>
         </div>
       </header>
 
-      {/* Código de Caja / QR */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-        <div className="lg:col-span-2 bg-[#131110] border border-[#2a2520] p-12 flex flex-col justify-between min-h-[300px]">
-          <div className="flex justify-between items-start">
-            <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c]">
-              Código de Caja Activo
-            </p>
-            <span className="font-mono text-xs text-[#d97644]">● EN VIVO</span>
-          </div>
-
-          <div className="my-8 text-center">
-            <p className="font-display text-9xl font-light tracking-wider text-[#d97644]">
-              RV55
-            </p>
-          </div>
-
+      {/* QR + Código de caja */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Código */}
+        <div className="bg-[#131110] border border-[#2a2520] p-6 flex flex-col justify-between min-h-[200px]">
           <div className="flex justify-between items-center">
-            <p className="font-mono text-xs text-[#5c554c]">Expira al registrar corte</p>
-            <button className="font-mono text-xs tracking-[0.2em] uppercase text-[#a89e90] border border-[#2a2520] px-4 py-2 hover:border-[#d97644] hover:text-[#d97644] transition-colors">
-              Regenerar Código
-            </button>
+            <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#5c554c]">
+              Código de Caja
+            </p>
+            <span className="font-mono text-[10px] text-[#d97644]">● EN VIVO</span>
           </div>
+          <p className="font-display text-7xl sm:text-8xl font-light tracking-wider text-[#d97644] text-center my-4">
+            RV55
+          </p>
+          <p className="font-mono text-[10px] text-[#5c554c] text-center">
+            Expira al registrar corte
+          </p>
         </div>
 
-        <div className="bg-[#131110] border border-[#2a2520] p-8 flex flex-col items-center justify-center">
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mb-6">
+        {/* QR */}
+        <div className="bg-[#131110] border border-[#2a2520] p-6 flex flex-col items-center justify-center gap-4">
+          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-[#5c554c]">
             QR Para Cliente
           </p>
-          <div className="bg-[#f3ece1] p-4 mb-6 w-40 h-40 flex items-center justify-center">
+          <div className="bg-[#f3ece1] p-3 w-32 h-32 sm:w-36 sm:h-36">
             <div
               className="w-full h-full"
               style={{
@@ -138,112 +116,151 @@ export default async function DashboardPage() {
                 )}')`,
                 backgroundSize: "cover",
               }}
-            ></div>
+            />
           </div>
-          <button className="font-mono text-xs tracking-[0.2em] uppercase text-[#a89e90] border border-[#2a2520] px-4 py-2 hover:border-[#d97644] hover:text-[#d97644] transition-colors w-full text-center">
-            Descargar QR
-          </button>
         </div>
       </div>
 
-      {/* Grid de Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#2a2520] border border-[#2a2520] mb-16">
-        <div className="bg-[#0a0807] p-8">
-          <p className="font-display text-6xl font-light">{cutsToday}</p>
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mt-2">
-            cortes hoy
-          </p>
-        </div>
-        <div className="bg-[#0a0807] p-8">
-          <p className="font-display text-6xl font-light">{totalCustomers}</p>
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mt-2">
-            clientes totales
-          </p>
-        </div>
-        <div className="bg-[#0a0807] p-8">
-          <p className="font-display text-6xl font-light text-[#d97644]">{newCustomersThisMonth}</p>
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mt-2">
-            nuevos este mes
-          </p>
-        </div>
-        <div className="bg-[#0a0807] p-8">
-          <p className="font-display text-6xl font-light">{recurrentCustomers}</p>
-          <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mt-2">
-            recurrentes
-          </p>
-        </div>
+      {/* Métricas */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#2a2520] border border-[#2a2520]">
+        {[
+          { value: cutsToday, label: "Cortes hoy", accent: false },
+          { value: totalCustomers, label: "Clientes", accent: false },
+          { value: newCustomersThisMonth, label: "Nuevos / mes", accent: true },
+          { value: recurrentCustomers, label: "Recurrentes", accent: false },
+        ].map(({ value, label, accent }) => (
+          <div key={label} className="bg-[#0a0807] p-4 sm:p-6">
+            <p className={`font-display text-4xl sm:text-5xl font-light ${accent ? "text-[#d97644]" : ""}`}>
+              {value}
+            </p>
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#5c554c] mt-1">
+              {label}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Libro Diario / Historial */}
+      {/* Cola de aprobaciones */}
+      <ApprovalQueue barbershopId={barbershopId} />
+
+      {/* Historial */}
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-display text-2xl font-light">
-            Libro Diario <span className="text-[#5c554c] text-base font-mono">/ Historial</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 className="font-display text-xl sm:text-2xl font-light">
+            Libro Diario{" "}
+            <span className="text-[#5c554c] text-sm font-mono">/ Historial</span>
           </h3>
           <RegisterVisitButton barbershopId={barbershopId} />
         </div>
 
         {recentVisits.length === 0 ? (
-          <div className="border border-[#2a2520] bg-[#131110] p-16 text-center">
-            <p className="font-display italic text-xl text-[#5c554c] mb-4">
-              Aún no hay registros en esta barbería
+          <div className="border border-[#2a2520] bg-[#131110] p-10 text-center">
+            <p className="font-display italic text-lg text-[#5c554c] mb-2">
+              Aún no hay registros
             </p>
-            <p className="font-mono text-xs text-[#5c554c] tracking-widest mb-6">
+            <p className="font-mono text-[10px] text-[#5c554c] tracking-widest">
               Cuando registres el primer corte o un cliente haga check-in, aparecerá aquí.
             </p>
           </div>
         ) : (
-          <div className="border border-[#2a2520] bg-[#131110] overflow-hidden">
-            <table className="w-full text-left font-mono text-xs text-[#a89e90]">
-              <thead>
-                <tr className="border-b border-[#2a2520] text-[#5c554c] uppercase bg-[#0a0807]">
-                  <th className="py-4 px-6">Cliente</th>
-                  <th className="py-4 px-6">WhatsApp</th>
-                  <th className="py-4 px-6">Cortes</th>
-                  <th className="py-4 px-6">Estado</th>
-                  <th className="py-4 px-6">Calificación</th>
-                  <th className="py-4 px-6 text-right">Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentVisits.map((visit) => (
-                  <tr key={visit.id} className="border-b border-[#1c1917] hover:bg-[#0a0807]/50">
-                    <td className="py-4 px-6 font-display text-base text-[#f3ece1] font-light">
+          <>
+            {/* MOBILE: tarjetas */}
+            <div className="sm:hidden space-y-3">
+              {recentVisits.map((visit) => (
+                <div
+                  key={visit.id}
+                  className="bg-[#131110] border border-[#2a2520] p-4 space-y-2"
+                >
+                  <div className="flex justify-between items-start">
+                    <p className="font-display text-lg text-[#f3ece1] font-light">
                       {visit.customerName}
-                    </td>
-                    <td className="py-4 px-6">+{visit.customerWhatsapp}</td>
-                    <td className="py-4 px-6">{visit.cutsCount}</td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] ${
-                          visit.status === "APPROVED"
-                            ? "bg-green-950/40 text-green-400 border border-green-800"
-                            : visit.status === "PENDING"
-                            ? "bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse"
-                            : "bg-red-950/40 text-red-400 border border-red-800"
-                        }`}
-                      >
-                        {visit.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-amber-400">
-                      {visit.rating ? "★".repeat(visit.rating) + "☆".repeat(5 - visit.rating) : "Sin calificar"}
-                    </td>
-                    <td className="py-4 px-6 text-right">
+                    </p>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] shrink-0 ml-2 ${
+                        visit.status === "APPROVED"
+                          ? "bg-green-950/40 text-green-400 border border-green-800"
+                          : visit.status === "PENDING"
+                          ? "bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse"
+                          : "bg-red-950/40 text-red-400 border border-red-800"
+                      }`}
+                    >
+                      {visit.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-mono text-[10px] text-[#5c554c]">
+                    <span>+{visit.customerWhatsapp}</span>
+                    <span>{visit.cutsCount} cortes</span>
+                  </div>
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-amber-400">
+                      {visit.rating
+                        ? "★".repeat(visit.rating) + "☆".repeat(5 - visit.rating)
+                        : "Sin calificar"}
+                    </span>
+                    <span className="text-[#5c554c]">
                       {new Date(visit.createdAt).toLocaleDateString("es-EC", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </td>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP: tabla */}
+            <div className="hidden sm:block border border-[#2a2520] bg-[#131110] overflow-x-auto">
+              <table className="w-full text-left font-mono text-xs text-[#a89e90]">
+                <thead>
+                  <tr className="border-b border-[#2a2520] text-[#5c554c] uppercase bg-[#0a0807]">
+                    <th className="py-3 px-4">Cliente</th>
+                    <th className="py-3 px-4">WhatsApp</th>
+                    <th className="py-3 px-4">Cortes</th>
+                    <th className="py-3 px-4">Estado</th>
+                    <th className="py-3 px-4">Calificación</th>
+                    <th className="py-3 px-4 text-right">Fecha</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recentVisits.map((visit) => (
+                    <tr key={visit.id} className="border-b border-[#1c1917] hover:bg-[#0a0807]/50">
+                      <td className="py-3 px-4 font-display text-base text-[#f3ece1] font-light">
+                        {visit.customerName}
+                      </td>
+                      <td className="py-3 px-4">+{visit.customerWhatsapp}</td>
+                      <td className="py-3 px-4">{visit.cutsCount}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] ${
+                            visit.status === "APPROVED"
+                              ? "bg-green-950/40 text-green-400 border border-green-800"
+                              : visit.status === "PENDING"
+                              ? "bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse"
+                              : "bg-red-950/40 text-red-400 border border-red-800"
+                          }`}
+                        >
+                          {visit.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-amber-400">
+                        {visit.rating
+                          ? "★".repeat(visit.rating) + "☆".repeat(5 - visit.rating)
+                          : "Sin calificar"}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {new Date(visit.createdAt).toLocaleDateString("es-EC", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
-
-      <ApprovalQueue barbershopId={barbershopId} />
     </div>
   );
 }
