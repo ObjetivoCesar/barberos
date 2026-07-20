@@ -50,8 +50,11 @@ export default function VideoScrollSection({
       const w = canvas.offsetWidth;
       const h = canvas.offsetHeight;
       if (!w || !h) return;
-      canvas.width  = w;
-      canvas.height = h;
+      // Multiplicar por devicePixelRatio para nitidez en pantallas retina/AMOLED
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap en 2x para no sobrecargar GPU
+      canvas.width  = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
       const idx = lastFrameRef.current;
       if (idx >= 0 && imagesRef.current[idx]) drawFrame(imagesRef.current[idx]!);
     };
@@ -60,7 +63,8 @@ export default function VideoScrollSection({
 
     function drawFrame(img: HTMLImageElement) {
       if (!ctx || !canvas || !img.naturalWidth) return;
-      const cw = canvas.width, ch = canvas.height;
+      // Usar dimensiones CSS (no físicas) porque el ctx ya está escalado por dpr
+      const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
       const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
       const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
       ctx.clearRect(0, 0, cw, ch);

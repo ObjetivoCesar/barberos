@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -13,6 +14,18 @@ const navLinks = [
 
 export default function NavPublic() {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Cerrar menú al navegar
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // Bloquear scroll del body cuando el menú está abierto
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
 
   return (
     <nav
@@ -54,13 +67,81 @@ export default function NavPublic() {
           })}
         </ul>
 
-        {/* CTA persistente */}
-        <Link
-          href="/acceso"
-          className="font-mono text-xs tracking-[0.2em] uppercase text-[#0a0807] bg-[#d97644] px-5 py-2 hover:bg-[#e8854f] transition-colors"
-        >
-          Acceder
-        </Link>
+        {/* Acciones derecha */}
+        <div className="flex items-center gap-4">
+          {/* CTA persistente — visible siempre */}
+          <Link
+            href="/acceso"
+            className="font-mono text-xs tracking-[0.2em] uppercase text-[#0a0807] bg-[#d97644] px-5 py-2 hover:bg-[#e8854f] transition-colors"
+          >
+            Acceder
+          </Link>
+
+          {/* Hamburger — solo mobile */}
+          <button
+            className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] group"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          >
+            <span
+              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 origin-center ${
+                menuOpen ? "rotate-45 translate-y-[6.5px]" : ""
+              }`}
+            />
+            <span
+              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 ${
+                menuOpen ? "opacity-0 scale-x-0" : ""
+              }`}
+            />
+            <span
+              className={`block h-[1.5px] w-6 bg-[#a89e90] transition-all duration-300 origin-center ${
+                menuOpen ? "-rotate-45 -translate-y-[6.5px]" : ""
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Menú móvil — overlay full screen */}
+      <div
+        className={`md:hidden fixed inset-0 top-16 bg-[#0a0807]/98 backdrop-blur-md z-40 transition-all duration-300 ${
+          menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!menuOpen}
+      >
+        <ul className="flex flex-col items-center justify-center h-full gap-10" role="list">
+          {navLinks.map(({ href, label }) => {
+            const isActive =
+              href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(href);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`font-display text-3xl font-light tracking-widest transition-colors ${
+                    isActive ? "text-[#d97644]" : "text-[#f3ece1] hover:text-[#d97644]"
+                  }`}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+
+          <li className="mt-4">
+            <Link
+              href="/acceso"
+              className="font-mono text-sm tracking-[0.3em] uppercase text-[#0a0807] bg-[#d97644] px-8 py-4 hover:bg-[#e8854f] transition-colors block"
+              onClick={() => setMenuOpen(false)}
+            >
+              Acceder
+            </Link>
+          </li>
+        </ul>
       </div>
     </nav>
   );
