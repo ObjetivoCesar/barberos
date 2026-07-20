@@ -119,3 +119,41 @@ Cualquier decisión, aprendizaje o corrección que deba sobrevivir al cierre de 
 ## 📋 Nota sobre auto-mejora
 
 Cuando se detecte un error de proceso, documentarlo en `Documentación/CONTEXT.md` bajo la sección "Errores de proceso corregidos", con fecha y causa raíz — no solo el fix, sino por qué pasó, para que el patrón sea reconocible si se repite.
+
+---
+
+## 📓 Protocolo de Bitácora de Sesiones (`Documentación/BITACORA.md`)
+
+### Propósito
+La bitácora es el **puente de memoria entre sesiones**. Registra tareas pendientes, decisiones que no llegaron a documento oficial, y preguntas de seguimiento que César quiere que el agente recuerde al iniciar la próxima sesión.
+
+### Reglas de gestión
+
+1. **Límite máximo: 5 sesiones activas.** Cuando se registre la sesión número 6, antes de escribirla el agente debe:
+   - Generar un resumen comprimido de las 5 anteriores (máx. 10 líneas en total).
+   - Preguntar: *"La bitácora tiene 5 sesiones acumuladas. ¿Puedo comprimir las sesiones 1-3 en un resumen y borrarlas para liberar espacio?"*
+   - Solo borrar si César responde afirmativamente.
+
+2. **Formato de cada entrada:**
+   ```
+   ### Sesión YYYY-MM-DD — [Título breve de la sesión]
+   **Tareas pendientes para la próxima sesión:**
+   - [ ] Tarea 1
+   - [ ] Tarea 2
+   **Decisiones tomadas (no en documento oficial):**
+   - Decisión x: resumen
+   **Pregunta de seguimiento para César al iniciar:**
+   - ¿Pregunta concreta?
+   ```
+
+3. **Al iniciar una sesión:** Antigravity lee `Documentación/BITACORA.md` como parte de la memoria de arranque (junto con `skill-madre.md`, `_index.md` y `CONTEXT.md`) y, si hay tareas pendientes o preguntas de seguimiento, las presenta **al inicio**, antes de cualquier otra acción.
+
+4. **Al detectar que una sesión está por terminar** (el usuario indica que se va, que va a salir, que terminó lo que tenía, o que pasará a otra actividad), el agente debe preguntar:
+   > *"¿Deseas registrar los cambios de esta sesión en la bitácora?"*
+   Si César dice sí, el agente escribe la entrada correspondiente en `Documentación/BITACORA.md` sin que César tenga que dictar nada — el agente construye el resumen desde el contexto de la conversación.
+
+### La bitácora NO reemplaza los documentos oficiales
+- Si una decisión es arquitectural o estratégica, va a su documento oficial en `Documentación/`.
+- Si es un error de proceso, va a `CONTEXT.md`.
+- La bitácora solo captura lo transitorio: tareas pendientes, hipótesis no validadas aún, y preguntas de seguimiento.
+
