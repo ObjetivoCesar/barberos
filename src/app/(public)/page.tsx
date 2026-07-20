@@ -3,6 +3,7 @@ import Link from "next/link";
 import FAQSection from "@/components/shared/FAQSection";
 import StructuredData from "@/components/shared/StructuredData";
 import CinematicScene from "@/components/landing/CinematicScene";
+import ScrollSequence, { type SceneData } from "@/components/landing/ScrollSequence";
 
 // ⚠️ COPY PROVISIONAL — pendiente de sello final contra 04-SISTEMA-DE-COMUNICACION.md
 // No publicar a producción sin aprobación explícita de César sobre este texto.
@@ -89,14 +90,62 @@ const faqSchema = {
   })),
 };
 
-// Preguntas del interrogatorio (Avatar 1 — miedo semanal)
-const interrogatorio = [
-  "¿Cuánto necesitas facturar esta semana para cubrir arriendo, sueldos y servicios?",
-  "¿Sabes cuántos de tus clientes de esta semana van a volver la próxima?",
-  "Si no vuelven suficientes... ¿de dónde sale la diferencia?",
-  "¿Cuánto de lo que no facturaste este mes se fue por la puerta sin que lo notaras?",
-  "¿Cuál de tus barberos genera más confianza para que la gente regrese?",
+// ──────────────────────────────────────────────────────────────
+// ESCENA 2 — El Interrogatorio con ScrollSequence
+//
+// ORDEN DE PREGUNTAS (Arco narrativo de César, 2026-07-19):
+// La tensión escala desde el dolor inmediato (dinero) → pérdida del equipo
+// → pérdida de clientes → consecuencia financiera → cierre simbólico.
+//
+// MICROCOPY: Frases de cambio de mentalidad (no de venta).
+// Reprograman el marco mental antes de presentar el producto.
+// Referencia: 02-ARQUITECTURA-ESTRATEGICA.md v2.1
+//
+// IMÁGENES PLACEHOLDER: /public/interrogatorio/frame-01..05.png
+// Producción final: secuencias AI-generadas (Flow) con César como protagonista.
+// Reemplazar frameSrc por frameList (array de 20-40 imgs) para activar modo canvas.
+// ──────────────────────────────────────────────────────────────
+const interrogatorioScenes: SceneData[] = [
+  {
+    // Visual: revisando el dinero de la caja
+    question: "¿Cuánto necesitas facturar esta semana para cubrir arriendo, sueldos y servicios?",
+    microcopy: "Todo negocio rentable comienza con una medición correcta.",
+    frameSrc: "/interrogatorio/frame-01.png",
+    productionNote: "César contando billetes en la caja, cámara lenta, plano detalle de manos. Barbería de fondo con poca luz.",
+  },
+  {
+    // Visual: observando las estaciones de trabajo
+    question: "¿Sabes cuál de tus barberos genera más clientes recurrentes?",
+    microcopy: "No puedes mejorar lo que no puedes medir.",
+    frameSrc: "/interrogatorio/frame-02.png",
+    productionNote: "César de pie mirando hacia los puestos de trabajo de sus barberos. Vista posterior, silhouette.",
+  },
+  {
+    // Visual: barbería vacía
+    question: "¿Sabes cuántos de tus clientes de esta semana van a volver la próxima?",
+    microcopy: "Cada cliente que no regresa es una oportunidad perdida.",
+    frameSrc: "/interrogatorio/frame-03.png",
+    productionNote: "Silla vacía en primer plano. César mirando hacia ella de fondo. Luz tenue de final de día.",
+  },
+  {
+    // Visual: apagando luces, tomando las llaves
+    question: "Si no vuelven suficientes... ¿de dónde sale la diferencia?",
+    microcopy: "La recurrencia vale más que la publicidad.",
+    frameSrc: "/interrogatorio/frame-04.png",
+    productionNote: "Plano detalle: mano de César agarrando llaves, la otra mano apagando la luz. Fondo oscurecido.",
+  },
+  {
+    // Visual: cerrando la puerta, alejándose
+    question: "¿Cuánto de lo que no facturaste este mes se fue por la puerta sin que lo notaras?",
+    microcopy: "Los datos convierten la intuición en estrategia.",
+    frameSrc: "/interrogatorio/frame-05.png",
+    productionNote: "César cerrando la puerta de la barbería. Vista desde dentro. Luz de la calle entrando. Camina lentamente hacia afuera.",
+  },
 ];
+
+// El golpe final — aparece tras la última pregunta
+const GOLPE_FINAL =
+  "Si no puedes responder estas preguntas... no estás administrando una barbería. Estás adivinando.";
 
 export default function InicioPage() {
   return (
@@ -109,12 +158,12 @@ export default function InicioPage() {
           ESCENA 1 — El Silencio
           Estado mental: llegada sin contexto.
           Acción: plantar la pregunta que incomoda.
+          + Frase de cambio de mentalidad como transición al scroll.
       ══════════════════════════════════════════ */}
       <section
         className="min-h-screen flex flex-col items-center justify-center px-6 text-center border-b border-[#1c1917]"
         aria-labelledby="h1-principal"
       >
-        {/* El texto está en el DOM desde el servidor. CinematicScene solo controla la opacidad CSS. */}
         <CinematicScene threshold={0.1}>
           <p className="font-mono text-xs tracking-[0.5em] uppercase text-[#3a3530] mb-16">
             BarberOS
@@ -127,12 +176,16 @@ export default function InicioPage() {
             <em className="not-italic text-[#d97644]">realmente</em>{" "}
             tu barbería?
           </h1>
-          <p className="font-display italic text-xl text-[#5c554c] mt-12 font-light max-w-xl">
-            No cuántos pasaron hoy. Cuántos son tuyos de verdad.
+
+          {/* Frase puente — prepara el cerebro para aceptar las preguntas */}
+          <p className="font-display italic text-lg md:text-xl text-[#5c554c] mt-16 font-light max-w-md leading-relaxed">
+            La intuición sirve para cortar cabello.
+            <br />
+            Los negocios crecen con datos.
           </p>
         </CinematicScene>
 
-        <CinematicScene delay={400} className="mt-24">
+        <CinematicScene delay={500} className="mt-20">
           <span
             className="block font-mono text-xs tracking-[0.4em] uppercase text-[#3a3530] animate-bounce"
             aria-hidden="true"
@@ -143,51 +196,26 @@ export default function InicioPage() {
       </section>
 
       {/* ══════════════════════════════════════════
-          ESCENA 2 — El Interrogatorio
-          Estado mental: incertidumbre creciente.
-          Acción: sembrar las 5 preguntas del Avatar 1.
-          Cada pregunta ocupa su propio bloque visual.
+          ESCENA 2 — El Interrogatorio (GSAP ScrollSequence)
+          Estado mental: incertidumbre creciente → "clic".
+          Arco: dinero → equipo → clientes → consecuencia → cierre simbólico.
+          Todo el texto está en el DOM (SSR). GSAP solo anima opacity/transform.
+          Las imágenes placeholder serán reemplazadas por la secuencia AI de César.
       ══════════════════════════════════════════ */}
-      <section
-        className="border-b border-[#1c1917] bg-[#0a0807]"
-        aria-labelledby="interrogatorio-titulo"
-      >
-        {/* Etiqueta SSR visible — indexable */}
-        <p
-          id="interrogatorio-titulo"
-          className="font-mono text-xs tracking-[0.5em] uppercase text-[#2a2520] text-center pt-24 pb-4"
-        >
-          Cinco preguntas
-        </p>
-
-        {interrogatorio.map((pregunta, i) => (
-          <CinematicScene
-            key={i}
-            delay={i * 80}
-            threshold={0.2}
-            className="min-h-[70vh] flex flex-col items-center justify-center px-8 border-b border-[#1a1815] last:border-0"
-          >
-            <div className="max-w-3xl text-center">
-              <span className="font-mono text-xs text-[#2a2520] tracking-widest block mb-8">
-                0{i + 1}
-              </span>
-              {/* Texto en DOM desde el servidor, no inyectado por JS */}
-              <p className="font-display text-3xl md:text-5xl font-light text-[#f3ece1] leading-snug">
-                {pregunta}
-              </p>
-            </div>
-          </CinematicScene>
-        ))}
-      </section>
+      <ScrollSequence
+        scenes={interrogatorioScenes}
+        closingText={GOLPE_FINAL}
+        scrollDurationVh={120}
+        sectionLabel="Cinco preguntas"
+      />
 
       {/* ══════════════════════════════════════════
-          ESCENA 3 — El Golpe
-          Estado mental: confrontación directa.
-          Acción: nombrar la realidad sin suavizarla.
+          ESCENA 3 — El Golpe (Pantalla negra)
+          Ya está como closingText dentro de ScrollSequence.
+          Esta sección reafirma la transición de atmósfera.
       ══════════════════════════════════════════ */}
-      <section className="min-h-screen bg-[#000000] flex items-center justify-center px-6 border-b border-[#1c1917]">
+      <section className="py-32 bg-[#000000] flex items-center justify-center px-6 border-b border-[#1c1917]">
         <CinematicScene threshold={0.2} className="max-w-3xl text-center">
-          {/* Silencio visual antes del texto */}
           <p className="font-mono text-xs tracking-[0.5em] uppercase text-[#1a1815] mb-20">
             La verdad
           </p>
@@ -214,7 +242,6 @@ export default function InicioPage() {
             </p>
           </CinematicScene>
 
-          {/* Timeline del cliente que se pierde — SSR, texto en DOM desde el inicio */}
           <ol className="relative" aria-label="Recorrido del cliente perdido">
             {[
               {
@@ -271,7 +298,6 @@ export default function InicioPage() {
       {/* ══════════════════════════════════════════
           ESCENA 5 — La Realidad Alternativa
           Estado mental: alivio, posibilidad.
-          Acción: mostrar las mismas preguntas con respuesta.
           Cambio de atmósfera: más luz, más calma.
       ══════════════════════════════════════════ */}
       <section className="py-32 px-6 border-b border-[#2a2520] bg-[#131110]">
@@ -316,7 +342,6 @@ export default function InicioPage() {
 
       {/* ══════════════════════════════════════════
           ESCENA 6 — Aquí aparece BarberOS
-          Estado mental: curiosidad + esperanza.
           Primera mención del producto.
           Regla: no abrir con "somos un software".
       ══════════════════════════════════════════ */}
@@ -339,7 +364,7 @@ export default function InicioPage() {
             </p>
           </CinematicScene>
 
-          {/* Video placeholder — en producción reemplazar con <video> o embed */}
+          {/* Video placeholder — reemplazar con <video> o embed en producción */}
           <CinematicScene delay={300} className="mt-16">
             <div
               className="bg-[#131110] border border-[#2a2520] aspect-video flex items-center justify-center"
@@ -361,9 +386,8 @@ export default function InicioPage() {
       </section>
 
       {/* ══════════════════════════════════════════
-          ESCENA 7 — Cómo Funciona (Preview)
+          ESCENA 7 — Cómo Funciona (Preview corto)
           Estado mental: curiosidad técnica.
-          Acción: 3 pasos simples + enlace a /como-funciona.
           Regla: preview solamente, no duplicar la página.
       ══════════════════════════════════════════ */}
       <section className="py-32 px-6 border-b border-[#2a2520] bg-[#0d0b09]">
@@ -421,9 +445,8 @@ export default function InicioPage() {
       </section>
 
       {/* ══════════════════════════════════════════
-          ESCENA 8 — Historias (Preview)
+          ESCENA 8 — Historias (Preview corto)
           Estado mental: querer evidencia de otros.
-          Acción: tarjetas gancho que enlazan a /historias.
       ══════════════════════════════════════════ */}
       <section className="py-32 px-6 border-b border-[#2a2520]">
         <div className="max-w-4xl mx-auto">
@@ -440,14 +463,12 @@ export default function InicioPage() {
             {[
               {
                 ciudad: "Cuenca, Ecuador",
-                cita:
-                  '"Por primera vez sé exactamente qué tan bien le está yendo a mi negocio."',
+                cita: '"Por primera vez sé exactamente qué tan bien le está yendo a mi negocio."',
                 slug: "barberia-ejemplo-cuenca",
               },
               {
                 ciudad: "Loja, Ecuador",
-                cita:
-                  '"Lo que más me sorprendió fue cuántos clientes no estaban volviendo."',
+                cita: '"Lo que más me sorprendió fue cuántos clientes no estaban volviendo."',
                 slug: "barberia-ejemplo-loja",
               },
             ].map(({ ciudad, cita, slug }, i) => (
@@ -485,8 +506,7 @@ export default function InicioPage() {
 
       {/* ══════════════════════════════════════════
           ESCENA 9 — FAQ ("Las dudas que tienes ahora")
-          Estado mental: objeciones pre-decisión.
-          Encabezado empático, misma función SEO.
+          Encabezado empático. Misma función SEO.
           Referencia: 03-ARQUITECTURA-WEB.md FAQPage.
       ══════════════════════════════════════════ */}
       <section className="py-24 px-6 border-t border-[#2a2520] bg-[#0a0807]">
@@ -496,15 +516,12 @@ export default function InicioPage() {
               Las dudas que probablemente tienes ahora
             </p>
           </CinematicScene>
-
-          {/* FAQSection ya tiene su propio CinematicScene implícito por las transiciones del acordeón */}
           <FAQSection titulo="" items={faqItems} />
         </div>
       </section>
 
       {/* ══════════════════════════════════════════
           ESCENA 10 — El Cierre
-          Estado mental: decisión.
           Regla: volver a la pregunta inicial, no a un pitch.
           1 solo CTA.
       ══════════════════════════════════════════ */}
