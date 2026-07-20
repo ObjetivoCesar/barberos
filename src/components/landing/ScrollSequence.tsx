@@ -120,65 +120,45 @@ export default function ScrollSequence({
         });
       }
 
-      // ── ScrollTrigger principal: pin del panel ───────────────
-      if (!isSequenceMode) {
-        ScrollTrigger.create({
+      // ── ScrollTrigger principal: Timeline sincronizada ───────
+      const tl = gsap.timeline({
+        scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
           end: `+=${totalHeight}vh`,
           pin: panelRef.current,
-          scrub: true,
-        });
-      }
+          scrub: 0.5,
+        }
+      });
 
-      // ── Timeline de texto: preguntas y microcopy ─────────────
+      // Animación secuencial de imágenes y textos
       scenes.forEach((_, i) => {
         const questionEl = questionRefs.current[i];
         const imageEl = imageRefs.current[i];
         if (!questionEl) return;
 
-        const start = `top+=${i * scrollDurationVh}vh top`;
-        const end = `top+=${(i + 1) * scrollDurationVh}vh top`;
-        const isFirst = i === 0;
-        const isLast = i === scenes.length - 1;
-
-        // Pregunta: fade in al inicio del segmento, fade out al final
-        gsap.fromTo(
-          questionEl,
-          { opacity: 0, y: 40 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.4,
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: isFirst ? "top top" : start,
-              end: end,
-              scrub: 0.8,
-              toggleActions: "play reverse play reverse",
-            },
-          }
-        );
-
-        // Imagen crossfade (modo placeholder sin frameList)
+        // Establecer estado inicial
+        gsap.set(questionEl, { opacity: 0, y: 30 });
         if (!isSequenceMode && imageEl) {
-          gsap.fromTo(
-            imageEl,
-            { opacity: 0 },
-            {
-              opacity: isFirst ? 0.65 : 0.65,
-              duration: 0.5,
-              scrollTrigger: {
-                trigger: containerRef.current,
-                start: isFirst ? "top top" : start,
-                end: isLast
-                  ? `+=${totalHeight}vh top`
-                  : `top+=${(i + 1.5) * scrollDurationVh}vh top`,
-                scrub: 0.6,
-                toggleActions: "play reverse play reverse",
-              },
-            }
-          );
+          gsap.set(imageEl, { opacity: 0 });
+        }
+
+        // Posición de inicio del bloque en la timeline (proporcional)
+        const label = `scene_${i}`;
+        
+        // 1. Entrada (fade in + slide up)
+        tl.to(questionEl, { opacity: 1, y: 0, duration: 1 }, label);
+        if (!isSequenceMode && imageEl) {
+          tl.to(imageEl, { opacity: 0.65, duration: 1 }, label);
+        }
+
+        // 2. Salida (fade out + slide up adicional) - se ejecuta si no es la última escena
+        if (i < scenes.length - 1) {
+          const exitLabel = `scene_${i}_exit`;
+          tl.to(questionEl, { opacity: 0, y: -30, duration: 1 }, `${label}+=1.5`);
+          if (!isSequenceMode && imageEl) {
+            tl.to(imageEl, { opacity: 0, duration: 1 }, `${label}+=1.5`);
+          }
         }
       });
 
@@ -192,9 +172,9 @@ export default function ScrollSequence({
             y: 0,
             scrollTrigger: {
               trigger: closingRef.current,
-              start: "top 80%",
-              end: "top 40%",
-              scrub: 0.8,
+              start: "top 85%",
+              end: "top 50%",
+              scrub: 0.5,
             },
           }
         );
