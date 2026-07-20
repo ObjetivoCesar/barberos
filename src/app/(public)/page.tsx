@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import FAQSection from "@/components/shared/FAQSection";
 import StructuredData from "@/components/shared/StructuredData";
 import CinematicScene from "@/components/landing/CinematicScene";
 import ScrollSequence, { type SceneData } from "@/components/landing/ScrollSequence";
+import MarqueeDivisor from "@/components/landing/MarqueeDivisor";
+import VideoFAQ from "@/components/landing/VideoFAQ";
 
 // ⚠️ COPY PROVISIONAL — pendiente de sello final contra 04-SISTEMA-DE-COMUNICACION.md
 // No publicar a producción sin aprobación explícita de César sobre este texto.
@@ -165,9 +166,12 @@ export default function InicioPage() {
         aria-labelledby="h1-principal"
       >
         <CinematicScene threshold={0.1}>
-          <p className="font-mono text-xs tracking-[0.5em] uppercase text-[#3a3530] mb-16">
-            BarberOS
-          </p>
+          <div className="flex items-center gap-3 mb-16 justify-center">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#d97644] animate-blink" aria-hidden="true" />
+            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644]">
+              REC · 24FPS · ESC 01
+            </p>
+          </div>
           <h1
             id="h1-principal"
             className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-[#f3ece1] leading-[1.05] max-w-4xl"
@@ -228,6 +232,9 @@ export default function InicioPage() {
           </blockquote>
         </CinematicScene>
       </section>
+
+      {/* Divisor con texto en movimiento infinito (Marquee) para romper el ritmo de lectura */}
+      <MarqueeDivisor text="Cliente entra. / Se corta. / Se ríe. / Sale. / Silencio. / WhatsApp. / Sonríe. / Tres semanas. / Regresa. /" />
 
       {/* ══════════════════════════════════════════
           ESCENA 4 — La Consecuencia
@@ -505,20 +512,11 @@ export default function InicioPage() {
       </section>
 
       {/* ══════════════════════════════════════════
-          ESCENA 9 — FAQ ("Las dudas que tienes ahora")
-          Encabezado empático. Misma función SEO.
-          Referencia: 03-ARQUITECTURA-WEB.md FAQPage.
+          ESCENA 9 — FAQ / OBJECIONES ("No un acordeón. Tu cara.")
+          Reemplaza las preguntas frecuentes tradicionales por el grid de videos interactivos.
+          Referencia: 03-ARQUITECTURA-WEB.md
       ══════════════════════════════════════════ */}
-      <section className="py-24 px-6 border-t border-[#2a2520] bg-[#0a0807]">
-        <div className="max-w-3xl mx-auto">
-          <CinematicScene>
-            <p className="font-mono text-xs tracking-[0.3em] uppercase text-[#5c554c] mb-16">
-              Las dudas que probablemente tienes ahora
-            </p>
-          </CinematicScene>
-          <FAQSection titulo="" items={faqItems} />
-        </div>
-      </section>
+      <VideoFAQ />
 
       {/* ══════════════════════════════════════════
           ESCENA 10 — El Cierre
