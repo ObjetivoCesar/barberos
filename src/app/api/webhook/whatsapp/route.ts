@@ -52,6 +52,8 @@ async function processMessage(payload: WebhookPayload) {
   const whatsapp = remoteJid.replace("@s.whatsapp.net", "");
   const pushName = payload.data.pushName?.trim() || null;
 
+  console.log(`[Webhook] Mensaje recibido de ${whatsapp}: "${messageText}" (pushName: ${pushName})`);
+
   // Buscar barbería usando la instancia del webhook, con fallback
   const evolutionInstance = payload.instance;
   const barbershop = evolutionInstance
@@ -75,6 +77,8 @@ async function processMessage(payload: WebhookPayload) {
       barbershop: true,
     },
   });
+
+  console.log(`[Webhook] Cliente encontrado: ${customer?.id || 'NULL'}, estado: ${customer?.sessionState || 'N/A'}`);
 
   // Si existe el cliente y no tiene nombre, NO lo sobreescribimos con pushName
   // (pushName viene del dispositivo y puede estar desactualizado/compartido)
@@ -171,6 +175,8 @@ async function processMessage(payload: WebhookPayload) {
 
   // --- FLUJO: SELECCIÓN DE BARBERO ---
   if (customer && customer.sessionState === "AWAITING_BARBER") {
+    console.log(`[Webhook] FLUJO SELECCIÓN BARBER - Cliente: ${customer.id}, Estado: ${customer.sessionState}`);
+    
     // Buscar barberos para hacer match
     const staff = await prisma.barberStaff.findMany({
       where: { barbershopId: barbershop.id },
@@ -195,6 +201,7 @@ async function processMessage(payload: WebhookPayload) {
     }
 
     if (!selectedBarber) {
+      console.log(`[Webhook] Barber no reconocido: "${messageText}"`);
       // No se reconoció el barbero, volver a preguntar
       const staffList = staff.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
       await sendWhatsAppMessage({
@@ -205,6 +212,8 @@ async function processMessage(payload: WebhookPayload) {
       });
       return;
     }
+
+    console.log(`[Webhook] Barber seleccionado: ${selectedBarber.name} (${selectedBarber.id})`);
 
     // Crear la visita PENDING con el barbero seleccionado
     await prisma.barberVisit.create({
@@ -224,6 +233,7 @@ async function processMessage(payload: WebhookPayload) {
 
     // Notificar al barbero vía push PWA
     const customerName = customer.name || "Cliente nuevo";
+    console.log(`[Webhook] Enviando push a barbero para cliente ${customerName}`);
     sendPushToBarber(barbershop.id, {
       title: "✂️ Check-in recibido",
       body: `${customerName} fue atendido por ${selectedBarber.name}. Toca para aprobar.`,
@@ -232,19 +242,25 @@ async function processMessage(payload: WebhookPayload) {
       console.error("[Webhook] Error enviando push notification:", err)
     );
 
+    console.log(`[Webhook] Enviando confirmación a cliente`);
     await sendWhatsAppMessage({
       instance: barbershop.evolutionInstance,
       apiKey: barbershop.evolutionApiKey,
       to: whatsapp,
       message: `¡Perfecto! Te atendió ${selectedBarber.name}. Avisándole para confirmar tu corte. ✂️`,
     });
+    
+    console.log(`[Webhook] FLUJO COMPLETADO EXITOSAMENTE`);
     return;
   }
 
-  // Si no es CHECKIN, validamos que el cliente exista en el sistema
+  // Si no es CHECKIN ni SELECCIÓN BARBER, ver qué pasa
   if (!customer) {
+    console.log(`[Webhook] Mensaje ignorado - cliente no existe: "${messageText}"`);
     return;
   }
+  
+  console.log(`[Webhook] Mensaje sin flujo activo - Cliente: ${customer.id}, Estado: ${customer.sessionState}, Msg: "${messageText}"`);
 
   // Máquina de estados para calificaciones
   if (customer.sessionState === "AWAITING_RATING") {
