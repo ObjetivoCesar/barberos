@@ -9,7 +9,7 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  const whatsapp = '593989545740'
+  const telefonos = ['593989545740', '593981283453']
   
   // Buscar barbería de César
   const shop = await prisma.barbershop.findFirst({
@@ -20,22 +20,26 @@ async function main() {
     console.error('❌ No se encontró Barbería Tuneche')
     process.exit(1)
   }
+
+  console.log(`Barbería: ${shop.name} (${shop.id})`)
   
-  // Buscar cliente
-  const customer = await prisma.barberCustomer.findFirst({
-    where: { barbershopId: shop.id, whatsapp }
-  })
-  
-  if (!customer) {
-    console.log(`ℹ️  No existe cliente con número ${whatsapp}`)
-  } else {
-    // Eliminar visitas primero
-    await prisma.barberVisit.deleteMany({ where: { customerId: customer.id } })
-    // Eliminar intentos
-    await prisma.visitAttempt.deleteMany({ where: { customerId: customer.id } })
-    // Eliminar cliente
-    await prisma.barberCustomer.delete({ where: { id: customer.id } })
-    console.log(`✅ Eliminado cliente ${whatsapp} (${customer.name || 'sin nombre'})`)
+  for (const whatsapp of telefonos) {
+    // Buscar cliente
+    const customer = await prisma.barberCustomer.findFirst({
+      where: { barbershopId: shop.id, whatsapp }
+    })
+    
+    if (!customer) {
+      console.log(`ℹ️  No existe cliente con número ${whatsapp}`)
+    } else {
+      // Eliminar visitas primero
+      await prisma.barberVisit.deleteMany({ where: { customerId: customer.id } })
+      // Eliminar intentos
+      await prisma.visitAttempt.deleteMany({ where: { customerId: customer.id } })
+      // Eliminar cliente
+      await prisma.barberCustomer.delete({ where: { id: customer.id } })
+      console.log(`✅ Eliminado cliente ${whatsapp} (${customer.name || 'sin nombre'})`)
+    }
   }
   
   await prisma.$disconnect()

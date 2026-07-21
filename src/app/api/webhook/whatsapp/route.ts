@@ -65,6 +65,13 @@ async function processMessage(payload: WebhookPayload) {
     return;
   }
 
+  // IGNORAR mensajes que vengan del propio número de la barbería
+  // (Evolution re-envía los mensajes que el propio bot envía, no debe procesarlos)
+  if (whatsapp === barbershop.whatsappNumber) {
+    console.log(`[Webhook] Ignorando mensaje propio de la barbería: ${whatsapp}`);
+    return;
+  }
+
   // Buscar o crear cliente para esta barbería específica (multi-tenant)
   let customer = await prisma.barberCustomer.findUnique({
     where: {
