@@ -76,14 +76,11 @@ async function processMessage(payload: WebhookPayload) {
     },
   });
 
-  // Si existe el cliente y no tiene nombre, pero recibimos su pushName en cualquier mensaje, lo actualizamos
-  if (customer && !customer.name && pushName) {
-    customer = await prisma.barberCustomer.update({
-      where: { id: customer.id },
-      data: { name: pushName },
-      include: { barbershop: true },
-    });
-  }
+  // Si existe el cliente y no tiene nombre, NO lo sobreescribimos con pushName
+  // (pushName viene del dispositivo y puede estar desactualizado/compartido)
+  // El nombre real del cliente debe ser establecido por el barbero manualmente
+  // pushName se puede usar para auditoría/logging si se necesita
+  void pushName;
 
   // --- FLUJO DE CHECK-IN ---
   const isCheckInMessage = 
@@ -99,7 +96,7 @@ async function processMessage(payload: WebhookPayload) {
         data: {
           barbershopId: barbershop.id,
           whatsapp,
-          name: pushName, // Guardar nombre de WhatsApp si está disponible
+          name: null, // El nombre se configura manualmente por el barbero, NO desde pushName
           cutsCount: 0,
           sessionState: "IDLE",
         },
@@ -121,6 +118,17 @@ async function processMessage(payload: WebhookPayload) {
     });
 
     if (recentVisit) {
+      // Registrar intento bloqueado por límite de 24h
+      await prisma.visitAttempt.create({
+        data: {
+          customerId: customer.id,
+          barbershopId: barbershop.id,
+          pushName: pushName,
+          status: "BLOCKED_24H",
+          reason: "24h_limit",
+        },
+      }).catch((err) => console.error("[Webhook] Error registrando VisitAttempt:", err));
+
       await sendWhatsAppMessage({
         instance: barbershop.evolutionInstance,
         apiKey: barbershop.evolutionApiKey,
@@ -130,7 +138,7 @@ async function processMessage(payload: WebhookPayload) {
       return;
     }
 
-    // Crear la visita PENDING
+    // Crear la visita PENDING y registrar el intento
     await prisma.barberVisit.create({
       data: {
         customerId: customer.id,
@@ -138,6 +146,17 @@ async function processMessage(payload: WebhookPayload) {
         rating: null,
       },
     });
+
+    // Registrar intento exitoso
+    await prisma.visitAttempt.create({
+      data: {
+        customerId: customer.id,
+        barbershopId: barbershop.id,
+        pushName: pushName,
+        status: "ATTEMPTED",
+        reason: "checkin_success",
+      },
+    }).catch((err) => console.error("[Webhook] Error registrando VisitAttempt:", err));
 
     // Notificar al barbero vía push PWA (fire-and-forget: no bloqueamos la respuesta)
     const customerName = customer.name || "Cliente nuevo";

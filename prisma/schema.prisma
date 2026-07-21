@@ -21,6 +21,7 @@ model Barbershop {
   staff             BarberStaff[]
   customers         BarberCustomer[]
   pushSubscriptions PushSubscription[]
+  visitAttempts     VisitAttempt[]
 }
 
 model MagicToken {
@@ -55,12 +56,26 @@ model BarberCustomer {
 }
 
 model BarberVisit {
-  id         String   @id @default(cuid())
-  customerId String
-  staffId    String?
-  rating     Int?
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
+  id          String    @id @default(cuid())
+  customerId  String
+  staffId     String?
+  rating      Int?
+  status      String    @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
+  rejectedAt  DateTime? // Timestamp cuando fue rechazado
+  recoveredAt DateTime? // Timestamp cuando fue recuperado
+  createdAt   DateTime  @default(now())
+}
+
+// Log de intentos de check-in para auditoría anti-spam
+model VisitAttempt {
+  id           String     @id @default(cuid())
+  customerId   String
+  barbershopId String
+  pushName     String? // Nombre de WhatsApp (para auditoría, NO para nombre real)
+  status       String   // ATTEMPTED | BLOCKED_24H | REJECTED | APPROVED
+  reason       String? // "24h_limit", "duplicate", "manual_reject", etc.
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 }
 
 model PushSubscription {

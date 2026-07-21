@@ -73,8 +73,19 @@ export async function POST(request: NextRequest) {
       where: { id: visitId },
       data: {
         status: "REJECTED",
+        rejectedAt: new Date(),
       },
     });
+
+    // Registrar en auditoría de intentos
+    await prisma.visitAttempt.create({
+      data: {
+        customerId: visit.customerId,
+        barbershopId,
+        status: "REJECTED",
+        reason: "manual_reject",
+      },
+    }).catch((err) => console.error("[Reject API] Error registrando VisitAttempt:", err));
 
     // Enviar mensaje de rechazo
     await sendWhatsAppMessage({

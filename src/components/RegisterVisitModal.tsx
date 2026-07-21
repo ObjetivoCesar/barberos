@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface Barber {
+  id: string;
+  name: string;
+  role: string;
+}
 
 interface RegisterVisitModalProps {
   isOpen: boolean;
@@ -14,8 +20,20 @@ export default function RegisterVisitModal({
   barbershopId = "ID_DE_PRUEBA",
 }: RegisterVisitModalProps) {
   const [phone, setPhone] = useState("");
+  const [staffId, setStaffId] = useState("");
+  const [staff, setStaff] = useState<Barber[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  // Cargar staff al abrir
+  useEffect(() => {
+    if (isOpen && barbershopId) {
+      fetch("/api/barbershop/staff")
+        .then((res) => res.json())
+        .then((data) => setStaff(data.staff || []))
+        .catch(() => setStaff([]));
+    }
+  }, [isOpen, barbershopId]);
 
   if (!isOpen) return null;
 
@@ -44,6 +62,7 @@ export default function RegisterVisitModal({
         body: JSON.stringify({
           barbershopId,
           customerWhatsapp: phone,
+          staffId: staffId || null,
         }),
       });
 
@@ -53,6 +72,7 @@ export default function RegisterVisitModal({
         setTimeout(() => {
           onClose();
           setPhone("");
+          setStaffId("");
           setStatus("idle");
           setMessage("");
         }, 2000);
@@ -71,6 +91,7 @@ export default function RegisterVisitModal({
     if (status !== "loading") {
       onClose();
       setPhone("");
+      setStaffId("");
       setStatus("idle");
       setMessage("");
     }
@@ -113,6 +134,29 @@ export default function RegisterVisitModal({
                 disabled={status === "loading"}
               />
             </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="barber"
+              className="block font-mono text-xs tracking-[0.2em] uppercase text-[#5c554c] mb-2"
+            >
+              Barbero que atendió (opcional)
+            </label>
+            <select
+              id="barber"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
+              className="w-full px-4 py-3 font-mono text-sm bg-[#0a0807] border border-[#2a2520] text-[#f3ece1] focus:outline-none focus:border-[#d97644] transition-colors"
+              disabled={status === "loading"}
+            >
+              <option value="">Seleccionar barbero...</option>
+              {staff.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} {s.role === "OWNER" ? "★" : ""}
+                </option>
+              ))}
+            </select>
           </div>
 
           {message && (
