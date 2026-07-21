@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 const footerLinks = [
@@ -20,15 +19,9 @@ export default function FooterPublic() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-12">
           {/* Marca */}
           <div>
-            <div className="mb-4">
-              <Image
-                src="/logos/barberos_logo_light.png"
-                alt="BarberOS"
-                width={140}
-                height={37}
-                className="h-7 w-auto"
-              />
-            </div>
+            <p className="font-display text-2xl font-light tracking-widest text-[#f3ece1] mb-3">
+              BarberOS
+            </p>
             <p className="font-mono text-xs text-[#5c554c] tracking-widest uppercase max-w-xs">
               El sistema operativo de tu barbería.
             </p>

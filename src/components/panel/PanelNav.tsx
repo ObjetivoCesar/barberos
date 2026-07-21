@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -24,16 +23,9 @@ export default function PanelNav({
         {/* Logo */}
         <Link
           href="/panel"
-          className="flex items-center hover:opacity-80 transition-opacity"
+          className="font-display text-xl font-light tracking-widest text-[#f3ece1] hover:text-[#d97644] transition-colors"
         >
-          <Image
-            src="/logos/barberos_logo_light.png"
-            alt="BarberOS"
-            width={120}
-            height={32}
-            className="h-6 w-auto"
-            priority
-          />
+          BarberOS
         </Link>
 
         {/* Desktop links */}
