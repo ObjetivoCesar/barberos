@@ -11,11 +11,19 @@ export async function GET(request: NextRequest) {
     // Obtener rechazos de los últimos 7 días
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+    // Primero obtenemos los customerIds de esta barbería
+    const customersInShop = await prisma.barberCustomer.findMany({
+      where: { barbershopId },
+      select: { id: true },
+    });
+    const customerIds = customersInShop.map((c) => c.id);
+
+    // Luego buscamos las visitas rechazadas de esos customers
     const rejectedVisits = await prisma.barberVisit.findMany({
       where: {
         status: "REJECTED",
         createdAt: { gte: sevenDaysAgo },
-        customer: { barbershopId },
+        customerId: { in: customerIds },
       },
       include: {
         customer: {
