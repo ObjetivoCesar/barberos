@@ -6,9 +6,6 @@ import StructuredData from "@/components/shared/StructuredData";
 // ⚠️ COPY PROVISIONAL — pendiente de sello final contra 04-SISTEMA-DE-COMUNICACION.md
 // No publicar a producción sin aprobación explícita de César sobre este texto.
 
-// ⚠️ RESEÑAS PLACEHOLDER — pendiente de reseñas verificadas y Google Reviews reales.
-// Esta estructura valida el diseño y el JSON-LD. Los datos reales se insertan
-// cuando los pilotos entreguen sus testimonios escritos y de video.
 const RESENAS_PLACEHOLDER = [
   {
     autor: "Barbero Piloto A",
@@ -103,6 +100,24 @@ export default function ResenasPage() {
             <div className="absolute -bottom-4 -left-4 font-mono text-xs text-[#5c554c] tracking-widest hidden md:block">
               REC // REVIEWS
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VIDEO RESEÑAS V2 ───────────────────────────────────── */}
+      <section className="py-16 px-6 border-b border-[#2a2520] bg-[#0a0807]">
+        <div className="max-w-4xl mx-auto">
+          <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644] mb-8 text-center">
+            Testimonio Oficial / Reseñas en Video
+          </p>
+          <div className="bg-[#131110] border border-[#2a2520] aspect-video relative overflow-hidden rounded-sm group shadow-2xl">
+            <video
+              src="https://activaqr-archivos.b-cdn.net/barberos/rese%C3%B1as%20v2.mp4"
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </section>

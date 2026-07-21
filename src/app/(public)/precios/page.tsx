@@ -35,6 +35,7 @@ const objecionesPrecio: FAQCard[] = [
     respuestaCorta:
       "No. La mensualidad se renueva mes a mes. Puedes cancelar cuando quieras sin penalización.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFHay%20contrato%20de%20permanencia.mp4",
   },
   {
     id: "02",
@@ -42,6 +43,7 @@ const objecionesPrecio: FAQCard[] = [
     respuestaCorta:
       "Tu acceso al panel queda suspendido temporalmente. Tus datos no se eliminan — cuando reactivás, todo sigue como lo dejaste.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFQu%C3%A9%20pasa%20si%20dejo%20de%20pagar%20la%20mensualidad.mp4",
   },
   {
     id: "03",
@@ -49,13 +51,15 @@ const objecionesPrecio: FAQCard[] = [
     respuestaCorta:
       "No. El setup es pago único por activación de tu barbería. Si migras de Pro a Premium, solo pagas la diferencia de mensualidad.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFEl%20setup%20se%20repite%20si%20cambio%20de%20plan.mp4",
   },
   {
     id: "04",
-    pregunta: "¿El precio puede cambiar?",
+    pregunta: "¿Aplica esto si mi barbería es pequeña?",
     respuestaCorta:
-      "Los precios actuales son de lanzamiento para los primeros 50 pilotos confirmados. Las barberías que ingresen ahora conservan ese precio mientras mantengan su cuenta activa.",
+      "Sí. El plan Pro está diseñado específicamente para barberías de 1 o 2 sillones que buscan orden y clientes fieles sin pagar de más.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/Aplica%20a%20una%20barber%C3%ADa%20chica.mp4",
   },
 ];
 

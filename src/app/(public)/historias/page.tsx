@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import VideoFAQ from "@/components/landing/VideoFAQ";
 import CTABlock from "@/components/shared/CTABlock";
 import StructuredData from "@/components/shared/StructuredData";
 
@@ -140,6 +141,56 @@ export default function HistoriasPage() {
           </div>
         </div>
       </section>
+
+      {/* ── SECCIÓN FUNDADOR / ORIGEN ───────────────────────────── */}
+      <section className="py-24 px-6 border-b border-[#2a2520] bg-[#0d0b09]">
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <p className="font-mono text-xs tracking-[0.4em] uppercase text-[#d97644] mb-4">
+              Origen / Fundador
+            </p>
+            <h2 className="font-display text-3xl md:text-4xl font-light text-[#f3ece1] mb-6 leading-tight">
+              Por qué construimos <em className="not-italic text-[#d97644]">BarberOS</em>.
+            </h2>
+            <p className="font-display italic text-[#a89e90] font-light leading-relaxed mb-6">
+              César Reyes, creador del ecosistema, explica la visión detrás del sistema y por qué nació para proteger la libertad de los dueños de barbería.
+            </p>
+          </div>
+
+          <div className="bg-[#131110] border border-[#2a2520] aspect-video relative overflow-hidden rounded-sm group shadow-2xl">
+            <video
+              src="https://activaqr-archivos.b-cdn.net/barberos/fundadores%20C%C3%A9sar.mp4"
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ HISTORIAS / DUDA DUEÑOS ────────────────────────── */}
+      <VideoFAQ
+        label="DUDAS DE COMUNIDAD"
+        title={
+          <>
+            Barberías <em className="text-[#d97644] not-italic font-normal">reales.</em>
+            <br />
+            Contacto transparente.
+          </>
+        }
+        subtitle="Pasa el cursor. Respuestas directas en 30 segundos."
+        items={[
+          {
+            id: "01",
+            pregunta: "¿Puedo hablar directamente con alguno de estos dueños?",
+            respuestaCorta:
+              "Sí. Formamos una comunidad de barberías piloto. Si deseas contactar con un dueño activo, podemos coordinar la llamada.",
+            duracion: "00:30",
+            videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFPuedo%20hablar%20directamente%20con%20alguno%20de%20estos%20due.mp4",
+          },
+        ]}
+      />
 
       {/* ── CTA ÚNICO ────────────────────────────────────────── */}
       <CTABlock

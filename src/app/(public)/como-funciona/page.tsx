@@ -26,30 +26,33 @@ export const metadata: Metadata = {
 const faqItems: FAQCard[] = [
   {
     id: "01",
-    pregunta: "¿Qué pasa si un cliente no tiene WhatsApp?",
+    pregunta: "¿No es esto lo mismo que ya trato de hacer a mano?",
     respuestaCorta:
-      "WhatsApp tiene más del 90% de penetración. Para casos excepcionales, haces el check-in manual desde el panel.",
+      "A mano dependes de acordarte de anotar y de enviar mensajes uno a uno. BarberOS automatiza el registro y la reactivación sin que muevas un dedo.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/No%20es%20esto%20lo%20mismo%20que%20ya%20trato%20de%20hacer%20a.mp4",
   },
   {
     id: "02",
-    pregunta: "¿Necesito saber programar para configurar BarberOS?",
+    pregunta: "¿Esto aplica a una barbería chica como la mía?",
     respuestaCorta:
-      "No. El onboarding tarda menos de 30 minutos y nosotros hacemos la configuración inicial contigo.",
+      "Precisamente en barberías pequeñas es donde más impacto tiene, porque cada cliente recurrente cuenta para cubrir el arriendo y servicios.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFEsto%20aplica%20a%20una%20barber%C3%ADa%20chica%20como%20la%20m%C3%ADa%2C%20o%20e.mp4",
   },
   {
     id: "03",
-    pregunta: "¿Cómo sé que el link mágico es seguro?",
+    pregunta: "¿Necesito WhatsApp Business?",
     respuestaCorta:
-      "Cada link es único y expira en 15 minutos. Es el mismo mecanismo de los bancos modernos para entrar sin contraseña.",
+      "No es estrictamente obligatorio, funciona con cualquier número de WhatsApp personal o Business conectado a la integración.",
     duracion: "00:30",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFNecesito%20WhatsApp%20Business.mp4",
   },
   {
     id: "04",
-    pregunta: "¿El sistema funciona si no tengo internet en la barbería?",
+    pregunta: "¿Qué pasa si un cliente no tiene WhatsApp?",
     respuestaCorta:
-      "El panel requiere conexión, pero los clientes pueden enviar su WhatsApp y el sistema lo procesa en cuanto hay señal.",
+      "WhatsApp tiene más del 90% de penetración. Para casos excepcionales, haces el check-in manual desde el panel.",
     duracion: "00:30",
   },
 ];

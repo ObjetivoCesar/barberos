@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendPushToBarber } from "@/lib/push";
 
 interface WebhookPayload {
   event: string;
@@ -19,6 +20,7 @@ interface WebhookPayload {
         caption?: string;
       };
     };
+    pushName?: string; // Nombre del contacto en WhatsApp
   };
 }
 
@@ -44,9 +46,10 @@ async function processMessage(payload: WebhookPayload) {
     return;
   }
 
-  // Extraer número de teléfono
+  // Extraer número de teléfono y nombre del contacto
   const remoteJid = payload.data.key.remoteJid;
   const whatsapp = remoteJid.replace("@s.whatsapp.net", "");
+  const pushName = payload.data.pushName?.trim() || null;
 
   // Buscar barbería usando la instancia del webhook, con fallback
   const evolutionInstance = payload.instance;
@@ -86,12 +89,20 @@ async function processMessage(payload: WebhookPayload) {
         data: {
           barbershopId: barbershop.id,
           whatsapp,
+          name: pushName, // Guardar nombre de WhatsApp si está disponible
           cutsCount: 0,
           sessionState: "IDLE",
         },
         include: {
           barbershop: true,
         },
+      });
+    } else if (pushName && !customer.name) {
+      // Actualizar nombre si el cliente ya existe pero no tiene nombre registrado
+      customer = await prisma.barberCustomer.update({
+        where: { id: customer.id },
+        data: { name: pushName },
+        include: { barbershop: true },
       });
     }
 
@@ -124,6 +135,16 @@ async function processMessage(payload: WebhookPayload) {
         rating: null,
       },
     });
+
+    // Notificar al barbero vía push PWA (fire-and-forget: no bloqueamos la respuesta)
+    const customerName = customer.name || "Cliente nuevo";
+    sendPushToBarber(barbershop.id, {
+      title: "✂️ Check-in recibido",
+      body: `${customerName} quiere registrar su corte. Toca para aprobar.`,
+      url: "/panel",
+    }).catch((err) =>
+      console.error("[Webhook] Error enviando push notification:", err)
+    );
 
     await sendWhatsAppMessage({
       instance: barbershop.evolutionInstance,

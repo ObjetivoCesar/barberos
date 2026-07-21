@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { deleteSession } from "@/lib/session";
 import PanelNav from "@/components/panel/PanelNav";
+import PushNotificationManager from "@/components/PushNotificationManager";
 
 async function logout() {
   "use server";
@@ -16,6 +17,9 @@ export default function PanelLayout({
   return (
     <div className="min-h-screen bg-[#0a0807] text-[#f3ece1]">
       <PanelNav logoutAction={logout} />
+
+      {/* Gestor de notificaciones push PWA — activo en todo el panel */}
+      <PushNotificationManager />
 
       {/* Main Content — con padding top para compensar el header fijo */}
       <main className="pt-16 min-h-screen">

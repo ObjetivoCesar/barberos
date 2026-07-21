@@ -16,10 +16,11 @@ model Barbershop {
   googleMapsUrl    String?
   planStatus       String         @default("TRIAL")
   trialEndsAt      DateTime?
-  connectionStatus String         @default("CONNECTED") // Reservado para uso futuro (ej. Evolution API down)
-  createdAt        DateTime       @default(now())
-  staff            BarberStaff[]
-  customers        BarberCustomer[]
+  connectionStatus  String             @default("CONNECTED") // Reservado para uso futuro (ej. Evolution API down)
+  createdAt         DateTime           @default(now())
+  staff             BarberStaff[]
+  customers         BarberCustomer[]
+  pushSubscriptions PushSubscription[]
 }
 
 model MagicToken {
@@ -60,4 +61,14 @@ model BarberVisit {
   rating     Int?
   status     String   @default("PENDING")
   createdAt  DateTime @default(now())
+}
+
+model PushSubscription {
+  id           String     @id @default(cuid())
+  barbershopId String
+  endpoint     String     @unique
+  p256dh       String
+  auth         String
+  createdAt    DateTime   @default(now())
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
 }
