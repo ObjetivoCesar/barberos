@@ -83,12 +83,9 @@ async function processMessage(payload: WebhookPayload) {
   void pushName;
 
   // --- FLUJO DE CHECK-IN ---
-  const isCheckInMessage = 
-    messageText.toUpperCase() === "CHECKIN" || 
-    messageText.toUpperCase().includes("CÓDIGO DE CAJA") ||
-    messageText.toUpperCase().includes("CODIGO DE CAJA") ||
-    messageText.toUpperCase().includes("CÓDIGO") ||
-    messageText.toUpperCase().includes("CODIGO");
+  // Solo acepta mensajes que contengan el código de caja específico RV55
+  // Formato esperado: "Hola,mi código de caja es RV55" o variaciones con "RV55"
+  const isCheckInMessage = messageText.toUpperCase().includes("RV55");
 
   if (isCheckInMessage) {
     if (!customer) {
