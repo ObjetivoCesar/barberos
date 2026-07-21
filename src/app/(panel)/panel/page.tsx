@@ -2,6 +2,7 @@ import { verifySession } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
 import ApprovalQueue from "@/components/ApprovalQueue";
 import RegisterVisitButton from "@/components/RegisterVisitButton";
+import VisitActionButtons from "@/components/VisitActionButtons";
 
 export default async function DashboardPage() {
   const session = await verifySession();
@@ -48,9 +49,11 @@ export default async function DashboardPage() {
   const recurrentCustomers = customers.filter((c) => c.cutsCount >= 2).length;
 
   const recentVisitsData = await prisma.barberVisit.findMany({
-    where: { customerId: { in: customerIds } },
+    where: { 
+      customerId: { in: customerIds },
+      createdAt: { gte: startOfDay }
+    },
     orderBy: { createdAt: "desc" },
-    take: 10,
   });
 
   const recentVisits = recentVisitsData.map((visit) => {
@@ -175,17 +178,22 @@ export default async function DashboardPage() {
                     <p className="font-display text-lg text-[#f3ece1] font-light">
                       {visit.customerName}
                     </p>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] shrink-0 ml-2 ${
-                        visit.status === "APPROVED"
-                          ? "bg-green-950/40 text-green-400 border border-green-800"
-                          : visit.status === "PENDING"
-                          ? "bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse"
-                          : "bg-red-950/40 text-red-400 border border-red-800"
-                      }`}
-                    >
-                      {visit.status}
-                    </span>
+                    {visit.status === "PENDING" ? (
+                      <VisitActionButtons
+                        visitId={visit.id}
+                        barbershopId={barbershopId}
+                      />
+                    ) : (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] shrink-0 ml-2 ${
+                          visit.status === "APPROVED"
+                            ? "bg-green-950/40 text-green-400 border border-green-800"
+                            : "bg-red-950/40 text-red-400 border border-red-800"
+                        }`}
+                      >
+                        {visit.status}
+                      </span>
+                    )}
                   </div>
                   <div className="flex justify-between font-mono text-[10px] text-[#5c554c]">
                     <span>+{visit.customerWhatsapp}</span>
@@ -230,17 +238,22 @@ export default async function DashboardPage() {
                       <td className="py-3 px-4">+{visit.customerWhatsapp}</td>
                       <td className="py-3 px-4">{visit.cutsCount}</td>
                       <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            visit.status === "APPROVED"
-                              ? "bg-green-950/40 text-green-400 border border-green-800"
-                              : visit.status === "PENDING"
-                              ? "bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse"
-                              : "bg-red-950/40 text-red-400 border border-red-800"
-                          }`}
-                        >
-                          {visit.status}
-                        </span>
+                        {visit.status === "PENDING" ? (
+                          <VisitActionButtons
+                            visitId={visit.id}
+                            barbershopId={barbershopId}
+                          />
+                        ) : (
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] ${
+                              visit.status === "APPROVED"
+                                ? "bg-green-950/40 text-green-400 border border-green-800"
+                                : "bg-red-950/40 text-red-400 border border-red-800"
+                            }`}
+                          >
+                            {visit.status}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-amber-400">
                         {visit.rating
