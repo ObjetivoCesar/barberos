@@ -233,16 +233,24 @@ async function processMessage(payload: WebhookPayload) {
 
     // Notificar al barbero vía push PWA
     const customerName = customer.name || "Cliente nuevo";
-    console.log(`[Webhook] Enviando push a barbero para cliente ${customerName}`);
-    sendPushToBarber(barbershop.id, {
+    console.log(`[Webhook] Enviando push a barbero para cliente ${customerName} (barbero: ${selectedBarber.name})`);
+    
+    // Enviar push y esperar resultado para logging
+    const pushResult = await sendPushToBarber(barbershop.id, {
       title: "✂️ Check-in recibido",
       body: `${customerName} fue atendido por ${selectedBarber.name}. Toca para aprobar.`,
       url: "/panel",
-    }).catch((err) =>
-      console.error("[Webhook] Error enviando push notification:", err)
-    );
+    });
+    
+    if (pushResult === -1) {
+      console.log(`[Webhook] ⚠️ Push NO enviada - VAPID no configurado en servidor`);
+    } else if (pushResult === 0) {
+      console.log(`[Webhook] ⚠️ Push NO enviada - No hay suscripciones activas`);
+    } else {
+      console.log(`[Webhook] ✅ Push enviada a ${pushResult} dispositivo(s)`);
+    }
 
-    console.log(`[Webhook] Enviando confirmación a cliente`);
+    console.log(`[Webhook] Enviando confirmación a cliente via WhatsApp`);
     await sendWhatsAppMessage({
       instance: barbershop.evolutionInstance,
       apiKey: barbershop.evolutionApiKey,
@@ -250,7 +258,7 @@ async function processMessage(payload: WebhookPayload) {
       message: `¡Perfecto! Te atendió ${selectedBarber.name}. Avisándole para confirmar tu corte. ✂️`,
     });
     
-    console.log(`[Webhook] FLUJO COMPLETADO EXITOSAMENTE`);
+    console.log(`[Webhook] ✅ FLUJO COMPLETADO EXITOSAMENTE`);
     return;
   }
 
