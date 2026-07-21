@@ -2,12 +2,29 @@ import webpush, { PushSubscription as WebPushSubscription } from "web-push";
 import { prisma } from "@/lib/prisma";
 import type { PushSubscription as PrismaPushSubscription } from "@prisma/client";
 
-// Configurar VAPID una sola vez al cargar el módulo
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+let isVapidInitialized = false;
+
+function initVapid() {
+  if (isVapidInitialized) return true;
+
+  const email = process.env.VAPID_EMAIL || "mailto:admin@barberos.app";
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) {
+    console.warn("[Push] VAPID keys no están configuradas en las variables de entorno.");
+    return false;
+  }
+
+  try {
+    webpush.setVapidDetails(email, publicKey, privateKey);
+    isVapidInitialized = true;
+    return true;
+  } catch (err) {
+    console.error("[Push] Error configurando VAPID:", err);
+    return false;
+  }
+}
 
 interface PushPayload {
   title: string;
@@ -24,6 +41,10 @@ export async function sendPushToBarber(
   barbershopId: string,
   payload: PushPayload
 ): Promise<void> {
+  if (!initVapid()) {
+    return;
+  }
+
   const subscriptions = await prisma.pushSubscription.findMany({
     where: { barbershopId },
   });
