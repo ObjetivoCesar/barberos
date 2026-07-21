@@ -182,7 +182,7 @@ async function processMessage(payload: WebhookPayload) {
 
   // --- FLUJO: SELECCIÓN DE BARBERO ---
   if (customer && customer.sessionState === "AWAITING_BARBER") {
-    console.log(`[Webhook] FLUJO SELECCIÓN BARBER - Cliente: ${customer.id}, Estado: ${customer.sessionState}`);
+    console.log(`[Webhook] FLUJO SELECCIÓN BARBER - Cliente: ${customer.id}, Estado: ${customer.sessionState}, Intentos: ${customer.sessionAttempts}`);
     
     // Buscar barberos para hacer match
     const staff = await prisma.barberStaff.findMany({
@@ -208,8 +208,30 @@ async function processMessage(payload: WebhookPayload) {
     }
 
     if (!selectedBarber) {
-      console.log(`[Webhook] Barber no reconocido: "${messageText}"`);
-      // No se reconoció el barbero, volver a preguntar
+      const newAttempts = (customer.sessionAttempts || 0) + 1;
+      console.log(`[Webhook] Barber no reconocido: "${messageText}" - Intento ${newAttempts}/2`);
+
+      if (newAttempts >= 2) {
+        // Demasiados intentos fallidos: resetear y notificar
+        await prisma.barberCustomer.update({
+          where: { id: customer.id },
+          data: { sessionState: "IDLE", sessionAttempts: 0 },
+        });
+        await sendWhatsAppMessage({
+          instance: barbershop.evolutionInstance,
+          apiKey: barbershop.evolutionApiKey,
+          to: whatsapp,
+          message: `No logramos encontrar al barbero. Puedes intentar de nuevo más tarde o escribirnos directamente. ¡Gracias!`,
+        });
+        return;
+      }
+
+      // Incrementar intentos y volver a preguntar
+      await prisma.barberCustomer.update({
+        where: { id: customer.id },
+        data: { sessionAttempts: newAttempts },
+      });
+
       const staffList = staff.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
       await sendWhatsAppMessage({
         instance: barbershop.evolutionInstance,

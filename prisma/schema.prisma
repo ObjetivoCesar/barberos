@@ -48,6 +48,7 @@ model BarberCustomer {
   name                   String?
   cutsCount              Int       @default(0)
   sessionState           String    @default("IDLE")
+  sessionAttempts        Int       @default(0) // Contador de intentos de selección de barbero
   lastVisitAt            DateTime?
   lastReactivationSentAt DateTime? // Campo para controlar el cron de reactivación
   barbershop             Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
