@@ -48,13 +48,6 @@ const faqItems: FAQCard[] = [
     duracion: "00:30",
     videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/%C2%BFNecesito%20WhatsApp%20Business.mp4",
   },
-  {
-    id: "04",
-    pregunta: "¿Qué pasa si un cliente no tiene WhatsApp?",
-    respuestaCorta:
-      "WhatsApp tiene más del 90% de penetración. Para casos excepcionales, haces el check-in manual desde el panel.",
-    duracion: "00:30",
-  },
 ];
 
 const howToSchema = {

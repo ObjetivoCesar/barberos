@@ -147,7 +147,7 @@ const objecionesHome: FAQCard[] = [
     pregunta: "¿De verdad se pierden tantos clientes sin que me dé cuenta?",
     respuestaCorta: "El 40% de los clientes no regresa y ningún barbero nota cuándo fue su última visita.",
     duracion: "00:30",
-    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/home%20-%20%C2%BFDe%20verdad%20se%20pierden%20tanto%20clientes%20sin%20q.mp4",
+    videoSrc: "https://activaqr-archivos.b-cdn.net/barberos/home%20-%20%C2%BFDe%20verdad%20se%20pierden%20tantos%20clientes%20sin%20q.mp4",
   },
   {
     id: "03",

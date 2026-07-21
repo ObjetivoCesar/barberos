@@ -75,6 +75,15 @@ async function processMessage(payload: WebhookPayload) {
     },
   });
 
+  // Si existe el cliente y no tiene nombre, pero recibimos su pushName en cualquier mensaje, lo actualizamos
+  if (customer && !customer.name && pushName) {
+    customer = await prisma.barberCustomer.update({
+      where: { id: customer.id },
+      data: { name: pushName },
+      include: { barbershop: true },
+    });
+  }
+
   // --- FLUJO DE CHECK-IN ---
   const isCheckInMessage = 
     messageText.toUpperCase() === "CHECKIN" || 
@@ -96,13 +105,6 @@ async function processMessage(payload: WebhookPayload) {
         include: {
           barbershop: true,
         },
-      });
-    } else if (pushName && !customer.name) {
-      // Actualizar nombre si el cliente ya existe pero no tiene nombre registrado
-      customer = await prisma.barberCustomer.update({
-        where: { id: customer.id },
-        data: { name: pushName },
-        include: { barbershop: true },
       });
     }
 
