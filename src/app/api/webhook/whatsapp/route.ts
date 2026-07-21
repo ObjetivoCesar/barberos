@@ -135,31 +135,98 @@ async function processMessage(payload: WebhookPayload) {
       return;
     }
 
-    // Crear la visita PENDING y registrar el intento
-    await prisma.barberVisit.create({
-      data: {
-        customerId: customer.id,
-        status: "PENDING",
-        rating: null,
-      },
+    // Obtener lista de barberos para preguntar
+    const staff = await prisma.barberStaff.findMany({
+      where: { barbershopId: barbershop.id },
+      orderBy: { name: "asc" },
     });
 
-    // Registrar intento exitoso
+    // Actualizar estado a esperando selección de barbero
+    await prisma.barberCustomer.update({
+      where: { id: customer.id },
+      data: { sessionState: "AWAITING_BARBER" },
+    });
+
+    // Registrar intento de check-in
     await prisma.visitAttempt.create({
       data: {
         customerId: customer.id,
         barbershopId: barbershop.id,
         pushName: pushName,
         status: "ATTEMPTED",
-        reason: "checkin_success",
+        reason: "checkin_awaiting_barber",
       },
     }).catch((err) => console.error("[Webhook] Error registrando VisitAttempt:", err));
 
-    // Notificar al barbero vía push PWA (fire-and-forget: no bloqueamos la respuesta)
+    // Construir mensaje con lista de barberos
+    const staffList = staff.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
+    await sendWhatsAppMessage({
+      instance: barbershop.evolutionInstance,
+      apiKey: barbershop.evolutionApiKey,
+      to: whatsapp,
+      message: `¡Gracias! Antes de confirmar, ¿quién te atendió hoy?\n\n${staffList}\n\nResponde con el nombre o número.`,
+    });
+    return;
+  }
+
+  // --- FLUJO: SELECCIÓN DE BARBERO ---
+  if (customer && customer.sessionState === "AWAITING_BARBER") {
+    // Buscar barberos para hacer match
+    const staff = await prisma.barberStaff.findMany({
+      where: { barbershopId: barbershop.id },
+      orderBy: { name: "asc" },
+    });
+
+    // Intentar hacer match del mensaje con nombre de barbero
+    const lowerMsg = messageText.toLowerCase();
+    let selectedBarber = staff.find(
+      (s) => s.name.toLowerCase().includes(lowerMsg) || lowerMsg.includes(s.name.toLowerCase())
+    );
+
+    // Si no hizo match por nombre, intentar por número
+    if (!selectedBarber) {
+      const numMatch = messageText.match(/\d/);
+      if (numMatch) {
+        const idx = parseInt(numMatch[0], 10) - 1;
+        if (idx >= 0 && idx < staff.length) {
+          selectedBarber = staff[idx];
+        }
+      }
+    }
+
+    if (!selectedBarber) {
+      // No se reconoció el barbero, volver a preguntar
+      const staffList = staff.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
+      await sendWhatsAppMessage({
+        instance: barbershop.evolutionInstance,
+        apiKey: barbershop.evolutionApiKey,
+        to: whatsapp,
+        message: `No reconocí ese nombre. Por favor responde con el nombre o número:\n\n${staffList}`,
+      });
+      return;
+    }
+
+    // Crear la visita PENDING con el barbero seleccionado
+    await prisma.barberVisit.create({
+      data: {
+        customerId: customer.id,
+        staffId: selectedBarber.id,
+        status: "PENDING",
+        rating: null,
+      },
+    });
+
+    // Resetear estado del cliente
+    await prisma.barberCustomer.update({
+      where: { id: customer.id },
+      data: { sessionState: "IDLE" },
+    });
+
+    // Notificar al barbero vía push PWA
     const customerName = customer.name || "Cliente nuevo";
     sendPushToBarber(barbershop.id, {
       title: "✂️ Check-in recibido",
-      body: `${customerName} quiere registrar su corte. Toca para aprobar.`,
+      body: `${customerName} fue atendido por ${selectedBarber.name}. Toca para aprobar.`,
       url: "/panel",
     }).catch((err) =>
       console.error("[Webhook] Error enviando push notification:", err)
@@ -169,7 +236,7 @@ async function processMessage(payload: WebhookPayload) {
       instance: barbershop.evolutionInstance,
       apiKey: barbershop.evolutionApiKey,
       to: whatsapp,
-      message: "¡Gracias! Avisándole a tu barbero para registrar tu corte. ✂️",
+      message: `¡Perfecto! Te atendió ${selectedBarber.name}. Avisándole para confirmar tu corte. ✂️`,
     });
     return;
   }

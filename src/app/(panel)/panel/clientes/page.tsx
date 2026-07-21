@@ -1,5 +1,6 @@
 import { verifySession } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
+import ClienteEditButton from "@/components/ClienteEditButton";
 
 export default async function ClientesPage() {
   const session = await verifySession();
@@ -95,6 +96,9 @@ export default async function ClientesPage() {
                       {customer.cutsCount} {customer.cutsCount === 1 ? "corte" : "cortes"}
                     </span>
                   </div>
+                  <div className="flex justify-start">
+                    <ClienteEditButton customer={customer} />
+                  </div>
 
                   <div className="flex justify-between font-mono text-[10px] text-[#5c554c] pt-2 border-t border-[#1c1917]">
                     <span>Estado: {customer.sessionState}</span>
@@ -130,8 +134,8 @@ export default async function ClientesPage() {
                       key={customer.id}
                       className="border-b border-[#1c1917] hover:bg-[#0a0807]/50 transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-display text-base text-[#f3ece1] font-light">
-                        {customer.name || "Cliente Registrado"}
+                      <td className="py-3.5 px-4">
+                        <ClienteEditButton customer={customer} />
                       </td>
                       <td className="py-3.5 px-4 text-[#d97644]">
                         +{customer.whatsapp}
