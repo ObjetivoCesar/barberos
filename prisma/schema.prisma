@@ -51,6 +51,7 @@ model BarberCustomer {
   lastVisitAt            DateTime?
   lastReactivationSentAt DateTime? // Campo para controlar el cron de reactivación
   barbershop             Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  visits                 BarberVisit[]
 
   @@unique([barbershopId, whatsapp])
 }
@@ -64,6 +65,7 @@ model BarberVisit {
   rejectedAt  DateTime? // Timestamp cuando fue rechazado
   recoveredAt DateTime? // Timestamp cuando fue recuperado
   createdAt   DateTime  @default(now())
+  customer    BarberCustomer @relation(fields: [customerId], references: [id])
 }
 
 // Log de intentos de check-in para auditoría anti-spam
