@@ -26,7 +26,8 @@ interface WebhookPayload {
 
 async function processMessage(payload: WebhookPayload) {
   // Validar evento y mensaje
-  if (payload.event !== "messages.upsert") {
+  if (payload.event !== "messages.upsert" && payload.event !== "MESSAGES_UPSERT") {
+    console.log("[Webhook] Ignorando evento:", payload.event);
     return;
   }
 
